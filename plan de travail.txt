@@ -1,0 +1,1042 @@
+# 📋 PLAN DÉTAILLÉ COMPLET - PROJET NUM_EXAM
+
+## 🎯 Vue d'ensemble : 30 jours pour tout finir
+
+**Date limite : 19 Janvier 2026 23:59**
+
+---
+
+## 📅 PHASE 1 : SETUP & INFRASTRUCTURE (JOURS 1-3)
+
+### 🗓️ JOUR 1 : Installation Environnement Local (3-4h)
+
+#### Matin (2h)
+**1.1 Installer PostgreSQL**
+- [ ] Télécharger PostgreSQL : https://www.postgresql.org/download/
+- [ ] Installer avec mot de passe : `postgres` (ou noter votre MDP)
+- [ ] Vérifier : Ouvrir `psql` dans le terminal
+- [ ] Si erreur : Chercher "pgAdmin" dans le menu et l'ouvrir
+
+**1.2 Créer la base de données**
+```bash
+# Ouvrir psql ou pgAdmin
+# Exécuter :
+CREATE DATABASE num_exam_db;
+```
+- [ ] Vérifier que la BD existe : `\l` dans psql
+
+**1.3 Installer Python & Créer l'environnement**
+```bash
+# Vérifier Python installé
+python --version  # Doit être 3.8+
+
+# Créer le dossier projet
+mkdir num_exam_project
+cd num_exam_project
+
+# Créer environnement virtuel
+python -m venv venv
+
+# Activer
+# Windows:
+venv\Scripts\activate
+# Mac/Linux:
+source venv/bin/activate
+```
+- [ ] Le terminal doit afficher `(venv)` devant
+
+#### Après-midi (2h)
+**1.4 Créer la structure de dossiers**
+```bash
+mkdir backend frontend database docs tests
+mkdir frontend/pages
+mkdir frontend/components
+mkdir database/schemas
+mkdir .streamlit
+```
+
+**1.5 Créer tous les fichiers vides**
+```bash
+# Backend
+touch backend/__init__.py
+touch backend/config.py
+touch backend/database.py
+touch backend/optimizer.py
+touch backend/conflict_detector.py
+touch backend/models.py
+touch backend/analytics.py
+
+# Frontend
+touch frontend/app.py
+touch frontend/pages/1_Dashboard_Doyen.py
+touch frontend/pages/2_Admin_Examens.py
+touch frontend/pages/3_Chef_Departement.py
+touch frontend/pages/4_Consultation.py
+
+# Database
+touch database/schema.sql
+touch database/seed_data.py
+touch database/queries.sql
+
+# Config
+touch requirements.txt
+touch .env
+touch .gitignore
+touch README.md
+touch .streamlit/config.toml
+```
+
+**1.6 Copier le code que je t'ai fourni**
+- [ ] Copier le contenu de `schema.sql` (artifact 1)
+- [ ] Copier le contenu de `seed_data.py` (artifact 2)
+- [ ] Copier le contenu de `requirements.txt` (artifact 3)
+- [ ] Copier le contenu de `config.py` (artifact 4)
+- [ ] Copier le contenu de `.env.example` → renommer en `.env`
+
+**1.7 Installer les dépendances**
+```bash
+pip install -r requirements.txt
+```
+- [ ] Attendre 2-3 minutes
+- [ ] Vérifier qu'il n'y a pas d'erreurs
+
+---
+
+### 🗓️ JOUR 2 : Base de Données (4-5h)
+
+#### Matin (2-3h)
+**2.1 Configurer la connexion**
+- [ ] Ouvrir `.env`
+- [ ] Modifier avec vos vrais identifiants :
+```bash
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=num_exam_db
+DB_USER=postgres
+DB_PASSWORD=VOTRE_VRAI_MOT_DE_PASSE
+```
+
+**2.2 Créer le schéma**
+```bash
+# Méthode 1 : Via psql
+psql -U postgres -d num_exam_db -f database/schema.sql
+
+# OU Méthode 2 : Via pgAdmin
+# Ouvrir pgAdmin → Clic droit sur num_exam_db → Query Tool
+# Copier-coller le contenu de schema.sql → Exécuter (F5)
+```
+- [ ] Vérifier qu'il n'y a pas d'erreurs
+- [ ] Vérifier les tables : `\dt` dans psql ou rafraîchir dans pgAdmin
+
+#### Après-midi (2h)
+**2.3 Générer les données**
+- [ ] Ouvrir `database/seed_data.py`
+- [ ] Modifier la ligne 18 avec votre mot de passe :
+```python
+DB_CONFIG = {
+    'dbname': 'num_exam_db',
+    'user': 'postgres',
+    'password': 'VOTRE_MOT_DE_PASSE',  # ← ICI
+    'host': 'localhost',
+    'port': 5432
+}
+```
+
+- [ ] Exécuter le script :
+```bash
+python database/seed_data.py
+```
+- [ ] Attendre 2-5 minutes
+- [ ] Vérifier le message final : "✅ GÉNÉRATION TERMINÉE"
+
+**2.4 Vérifier les données**
+```bash
+psql -U postgres -d num_exam_db
+
+# Dans psql :
+SELECT COUNT(*) FROM etudiants;     -- Doit afficher 13000
+SELECT COUNT(*) FROM professeurs;   -- Doit afficher ~310
+SELECT COUNT(*) FROM inscriptions;  -- Doit afficher 130000+
+\q
+```
+
+---
+
+### 🗓️ JOUR 3 : Backend (4-5h)
+
+#### Matin (2h)
+**3.1 Copier les fichiers backend**
+- [ ] Copier `database.py` (artifact que je t'ai donné)
+- [ ] Copier `optimizer.py` (artifact)
+- [ ] Copier `conflict_detector.py` (artifact)
+
+**3.2 Tester la connexion**
+```bash
+python backend/config.py
+```
+- [ ] Doit afficher : "✅ Connexion réussie!"
+
+**3.3 Tester database.py**
+```bash
+python backend/database.py
+```
+- [ ] Doit afficher des KPIs
+
+#### Après-midi (2-3h)
+**3.4 Tester l'optimiseur**
+```bash
+python backend/optimizer.py
+```
+- [ ] Attendre 30-60 secondes
+- [ ] Doit afficher : "✅ Planification terminée en XX secondes"
+- [ ] Vérifier que des examens ont été créés :
+```bash
+psql -U postgres -d num_exam_db
+SELECT COUNT(*) FROM examens;  -- Doit être > 0
+```
+
+**3.5 Tester le détecteur de conflits**
+```bash
+python backend/conflict_detector.py
+```
+- [ ] Doit afficher le rapport de conflits
+
+---
+
+## 📅 PHASE 2 : FRONTEND (JOURS 4-6)
+
+### 🗓️ JOUR 4 : Application Principale (3-4h)
+
+**4.1 Copier les fichiers frontend**
+- [ ] Copier `frontend/app.py` (artifact)
+- [ ] Créer `.streamlit/config.toml` :
+```toml
+[theme]
+primaryColor = "#667eea"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
+
+[server]
+headless = true
+port = 8501
+```
+
+**4.2 Lancer l'application**
+```bash
+streamlit run frontend/app.py
+```
+- [ ] Doit ouvrir automatiquement dans le navigateur
+- [ ] Vérifier que la page d'accueil s'affiche
+- [ ] Tester la connexion BD dans la sidebar
+
+**4.3 Corriger les erreurs éventuelles**
+- Si erreur "Module not found" → vérifier que toutes les dépendances sont installées
+- Si erreur "Connection refused" → vérifier `.env`
+- Si erreur "import" → vérifier les chemins dans les imports
+
+---
+
+### 🗓️ JOUR 5 : Pages Streamlit (4-5h)
+
+**5.1 Copier toutes les pages**
+- [ ] Copier `1_🏛️_Dashboard_Doyen.py` (artifact)
+- [ ] Copier `2_👨‍💼_Admin_Examens.py` (artifact)
+- [ ] Copier `3_📊_Chef_Departement.py` (artifact)
+- [ ] Copier `4_👥_Consultation.py` (artifact)
+
+**5.2 Tester chaque page**
+- [ ] Relancer : `streamlit run frontend/app.py`
+- [ ] Tester Dashboard Doyen → Vérifier les graphiques
+- [ ] Tester Admin Examens → Cliquer sur "Générer EDT"
+- [ ] Tester Chef Département → Sélectionner un département
+- [ ] Tester Consultation → Rechercher un matricule (ex: E202400001)
+
+**5.3 Noter les bugs**
+- [ ] Faire une liste des erreurs à corriger
+- [ ] Corriger une par une
+
+---
+
+### 🗓️ JOUR 6 : Tests & Debug (3-4h)
+
+**6.1 Test complet du workflow**
+1. [ ] Aller dans Admin Examens
+2. [ ] Cliquer "Générer l'emploi du temps"
+3. [ ] Attendre la fin
+4. [ ] Vérifier "✅ Génération terminée"
+5. [ ] Aller dans Détection Conflits
+6. [ ] Cliquer "Détecter les conflits"
+7. [ ] Vérifier le rapport
+8. [ ] Aller dans Dashboard Doyen
+9. [ ] Vérifier que les graphiques s'affichent
+10. [ ] Aller dans Consultation
+11. [ ] Tester avec un matricule étudiant
+12. [ ] Vérifier que les examens s'affichent
+
+**6.2 Corriger les bugs**
+- [ ] Corriger toutes les erreurs trouvées
+- [ ] Re-tester jusqu'à ce que tout fonctionne
+
+---
+
+## 📅 PHASE 3 : HÉBERGEMENT EN LIGNE (JOURS 7-9)
+
+### 🗓️ JOUR 7 : Setup GitHub & Neon (2-3h)
+
+#### Matin
+**7.1 Créer compte GitHub**
+- [ ] Aller sur https://github.com
+- [ ] Cliquer "Sign Up"
+- [ ] Créer un compte (gratuit)
+- [ ] Confirmer l'email
+
+**7.2 Créer le dépôt**
+- [ ] Cliquer sur "New repository"
+- [ ] Nom : `num-exam-platform`
+- [ ] Visibilité : **Public** (important pour Streamlit Cloud gratuit)
+- [ ] Cocher "Add README"
+- [ ] Cliquer "Create repository"
+
+**7.3 Pousser le code sur GitHub**
+```bash
+# Dans votre dossier projet
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/VOTRE_USERNAME/num-exam-platform.git
+git push -u origin main
+```
+
+#### Après-midi
+**7.4 Créer compte Neon.tech**
+- [ ] Aller sur https://neon.tech
+- [ ] Cliquer "Sign Up"
+- [ ] Se connecter avec GitHub
+- [ ] Confirmer l'email
+
+**7.5 Créer le projet PostgreSQL**
+- [ ] Cliquer "Create Project"
+- [ ] Nom : `num-exam-db`
+- [ ] Région : Europe (Frankfurt) ou plus proche
+- [ ] Cliquer "Create"
+
+**7.6 Noter les identifiants**
+- [ ] Copier la "Connection String" complète
+- [ ] Format : `postgresql://user:pass@host/db`
+- [ ] Noter séparément :
+  - Host : `ep-xxx.eu-central-1.aws.neon.tech`
+  - Database : `neondb`
+  - User : `xxxxx`
+  - Password : `xxxxx`
+
+---
+
+### 🗓️ JOUR 8 : Migration vers Neon (3-4h)
+
+**8.1 Créer le schéma sur Neon**
+- [ ] Dans Neon, cliquer "SQL Editor"
+- [ ] Copier TOUT le contenu de `database/schema.sql`
+- [ ] Coller dans l'éditeur
+- [ ] Cliquer "Run"
+- [ ] Vérifier : "✅ Query executed successfully"
+
+**8.2 Générer les données sur Neon**
+- [ ] Modifier `database/seed_data.py` ligne 18 :
+```python
+DB_CONFIG = {
+    'dbname': 'neondb',  # ← Nom de la BD Neon
+    'user': 'votre_user_neon',
+    'password': 'votre_password_neon',
+    'host': 'ep-xxx.eu-central-1.aws.neon.tech',
+    'port': 5432,
+    'sslmode': 'require'  # ← IMPORTANT pour Neon
+}
+```
+
+- [ ] Exécuter :
+```bash
+python database/seed_data.py
+```
+- [ ] Attendre 3-5 minutes (plus lent car c'est en ligne)
+- [ ] Vérifier dans Neon SQL Editor :
+```sql
+SELECT COUNT(*) FROM etudiants;
+```
+
+**8.3 Modifier config.py pour le cloud**
+- [ ] Ouvrir `backend/config.py`
+- [ ] Remplacer la classe `DatabaseConfig` par :
+```python
+import os
+import streamlit as st
+
+class DatabaseConfig:
+    # Détecter si on est sur Streamlit Cloud
+    if os.getenv('STREAMLIT_CLOUD') == 'true':
+        DB_HOST = st.secrets["database"]["host"]
+        DB_PORT = st.secrets["database"]["port"]
+        DB_NAME = st.secrets["database"]["name"]
+        DB_USER = st.secrets["database"]["user"]
+        DB_PASSWORD = st.secrets["database"]["password"]
+    else:
+        # Local
+        DB_HOST = os.getenv('DB_HOST', 'localhost')
+        DB_PORT = os.getenv('DB_PORT', '5432')
+        DB_NAME = os.getenv('DB_NAME', 'num_exam_db')
+        DB_USER = os.getenv('DB_USER', 'postgres')
+        DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
+    
+    DB_CONFIG = {
+        'dbname': DB_NAME,
+        'user': DB_USER,
+        'password': DB_PASSWORD,
+        'host': DB_HOST,
+        'port': DB_PORT,
+        'sslmode': 'require' if os.getenv('STREAMLIT_CLOUD') == 'true' else 'prefer'
+    }
+```
+
+**8.4 Tester en local avec Neon**
+- [ ] Modifier `.env` :
+```bash
+DB_HOST=ep-xxx.eu-central-1.aws.neon.tech
+DB_NAME=neondb
+DB_USER=votre_user_neon
+DB_PASSWORD=votre_password_neon
+```
+- [ ] Relancer l'app : `streamlit run frontend/app.py`
+- [ ] Vérifier que ça marche avec Neon
+
+**8.5 Commit et push**
+```bash
+git add .
+git commit -m "Configure for cloud deployment"
+git push
+```
+
+---
+
+### 🗓️ JOUR 9 : Déploiement Streamlit Cloud (2-3h)
+
+**9.1 Créer compte Streamlit Cloud**
+- [ ] Aller sur https://streamlit.io/cloud
+- [ ] Cliquer "Sign up"
+- [ ] Se connecter avec GitHub (obligatoire)
+- [ ] Autoriser l'accès aux dépôts
+
+**9.2 Déployer l'application**
+- [ ] Cliquer "New app"
+- [ ] Repository : `num-exam-platform`
+- [ ] Branch : `main`
+- [ ] Main file : `frontend/app.py`
+- [ ] Cliquer "Advanced settings..."
+
+**9.3 Configurer les Secrets**
+Dans la section "Secrets", ajouter :
+```toml
+STREAMLIT_CLOUD = "true"
+
+[database]
+host = "ep-xxx.eu-central-1.aws.neon.tech"
+port = "5432"
+name = "neondb"
+user = "votre_user_neon"
+password = "votre_password_neon"
+```
+- [ ] Remplacer par VOS vraies valeurs Neon
+- [ ] Cliquer "Save"
+
+**9.4 Lancer le déploiement**
+- [ ] Cliquer "Deploy!"
+- [ ] Attendre 3-5 minutes
+- [ ] L'app sera sur : `https://votre-app.streamlit.app`
+
+**9.5 Tester l'application en ligne**
+- [ ] Ouvrir l'URL
+- [ ] Tester la connexion BD
+- [ ] Générer un emploi du temps
+- [ ] Détecter les conflits
+- [ ] Tester toutes les pages
+
+**9.6 Noter l'URL finale**
+- [ ] Copier l'URL complète
+- [ ] Format : `https://xxxxx.streamlit.app`
+- [ ] Cette URL sera à soumettre sur Classroom
+
+---
+
+## 📅 PHASE 4 : RAPPORT TECHNIQUE (JOURS 10-14)
+
+### 🗓️ JOUR 10 : Structure & Introduction (2-3h)
+
+**10.1 Créer le document**
+- [ ] Ouvrir Word/Google Docs/LaTeX
+- [ ] Titre : "Plateforme d'Optimisation des Emplois du Temps d'Examens"
+- [ ] Page de garde avec :
+  - Titre du projet
+  - Noms des membres du trinôme
+  - Date
+  - Logo de l'université
+
+**10.2 Table des matières**
+```
+1. Introduction
+2. Analyse et Conception
+   2.1 Problématique
+   2.2 Solution proposée
+   2.3 Architecture système
+3. Modélisation de la Base de Données
+   3.1 MCD (Modèle Conceptuel)
+   3.2 MLD (Modèle Logique)
+   3.3 Contraintes d'intégrité
+4. Algorithme d'Optimisation
+   4.1 Contraintes métier
+   4.2 Approche algorithmique
+   4.3 Implémentation
+5. Interface Utilisateur
+   5.1 Technologies utilisées
+   5.2 Pages et fonctionnalités
+6. Tests et Validation
+   6.1 Tests fonctionnels
+   6.2 Tests de performance
+   6.3 Détection de conflits
+7. Benchmarks de Performance
+8. Conclusion et Perspectives
+9. Annexes
+```
+
+**10.3 Rédiger l'introduction (1-2 pages)**
+- [ ] Contexte : Problème des emplois du temps manuels
+- [ ] Enjeux : 13,000 étudiants, 7 départements, contraintes multiples
+- [ ] Objectifs : Génération automatique en < 45 secondes
+- [ ] Plan du rapport
+
+---
+
+### 🗓️ JOUR 11 : Conception & Base de Données (3-4h)
+
+**11.1 Section Problématique (1 page)**
+- [ ] Décrire les contraintes :
+  - 1 examen max/jour pour un étudiant
+  - 3 surveillances max/jour pour un prof
+  - Capacité salles = 20 étudiants
+  - Équilibrage des surveillances
+- [ ] Expliquer pourquoi c'est complexe (combinatoire)
+
+**11.2 Section Architecture (1 page + schéma)**
+- [ ] Créer un schéma d'architecture :
+```
+[Frontend Streamlit] 
+        ↓
+[Backend Python (Optimizer + Conflict Detector)]
+        ↓
+[Base de Données PostgreSQL]
+```
+- [ ] Expliquer chaque couche
+
+**11.3 Section Base de Données (2-3 pages)**
+- [ ] Créer le MCD (schéma entités-associations)
+- [ ] Créer le MLD (tables avec clés)
+- [ ] Lister les 9 tables principales avec leurs rôles
+- [ ] Expliquer les relations (1-N, N-N)
+- [ ] Expliquer les contraintes (CHECK, FOREIGN KEY)
+
+**À faire :**
+- [ ] Utiliser un outil comme Draw.io ou Lucidchart
+- [ ] Faire des captures d'écran des schémas
+- [ ] Insérer dans le rapport
+
+---
+
+### 🗓️ JOUR 12 : Algorithme & Implémentation (3-4h)
+
+**12.1 Section Algorithme (2-3 pages)**
+- [ ] Expliquer l'approche glouton (greedy algorithm)
+- [ ] Décrire les étapes :
+  1. Trier les modules par nombre d'étudiants (décroissant)
+  2. Pour chaque module :
+     - Essayer chaque date
+     - Essayer chaque créneau horaire
+     - Vérifier disponibilité étudiants
+     - Trouver salles disponibles
+     - Assigner surveillants
+     - Planifier si tout OK
+  3. Sauvegarder le planning
+
+- [ ] Pseudo-code de l'algorithme :
+```
+Pour chaque module M trié par nb_étudiants DESC:
+    planifié ← faux
+    Pour chaque date D dans période_examens:
+        Pour chaque créneau H dans créneaux_horaires:
+            Si étudiants_disponibles(M, D) ET
+               salles_disponibles(H, nb_salles_nécessaires) ET
+               profs_disponibles(D, nb_surveillants):
+                Planifier_Examen(M, D, H)
+                planifié ← vrai
+                Sortir des boucles
+```
+
+**12.2 Section Implémentation (1 page)**
+- [ ] Expliquer les technologies :
+  - Python 3.10+
+  - psycopg2 pour PostgreSQL
+  - Structures de données (dictionnaires, defaultdict)
+- [ ] Expliquer l'optimisation :
+  - Index sur colonnes fréquentes
+  - Caching des requêtes
+  - Transactions pour intégrité
+
+---
+
+### 🗓️ JOUR 13 : Interface & Tests (3h)
+
+**13.1 Section Interface Utilisateur (2 pages)**
+- [ ] Expliquer Streamlit
+- [ ] Décrire les 4 pages principales :
+  - Dashboard Doyen (KPIs, graphiques)
+  - Admin Examens (génération, conflits)
+  - Chef Département (stats département)
+  - Consultation (étudiants/profs)
+- [ ] Insérer des captures d'écran de CHAQUE page
+- [ ] Expliquer les graphiques (Plotly)
+
+**13.2 Section Tests (2 pages)**
+- [ ] Tests fonctionnels :
+  - Génération réussie
+  - Détection conflits
+  - Consultation emplois du temps
+- [ ] Tests de performance :
+  - Temps de génération
+  - Temps de détection conflits
+  - Temps de chargement pages
+
+---
+
+### 🗓️ JOUR 14 : Benchmarks & Finalisation (3h)
+
+**14.1 Section Benchmarks (2 pages)**
+Créer un tableau de résultats :
+
+| Métrique | Objectif | Résultat | Statut |
+|----------|----------|----------|--------|
+| Temps génération EDT | < 45 sec | XX sec | ✅ |
+| Nb modules planifiés | 100% | XX% | ✅ |
+| Conflits détectés | 0 | X | ⚠️ |
+| Temps détection conflits | < 10 sec | XX sec | ✅ |
+
+- [ ] Faire des mesures réelles
+- [ ] Expliquer les résultats
+
+**14.2 Conclusion (1 page)**
+- [ ] Résumé des réalisations
+- [ ] Difficultés rencontrées et solutions
+- [ ] Perspectives d'amélioration :
+  - Ajout de contraintes (préférences étudiants)
+  - Optimisation multi-objectifs
+  - Notifications automatiques
+  - Export iCal/PDF
+
+**14.3 Annexes**
+- [ ] Code important (algorithme principal)
+- [ ] Schéma SQL complet
+- [ ] Liste complète des contraintes
+
+**14.4 Relecture finale**
+- [ ] Vérifier orthographe
+- [ ] Vérifier numérotation des pages
+- [ ] Vérifier table des matières
+- [ ] Vérifier que toutes les images sont claires
+- [ ] Exporter en PDF
+
+---
+
+## 📅 PHASE 5 : VIDÉO YOUTUBE (JOURS 15-16)
+
+### 🗓️ JOUR 15 : Préparation & Script (2-3h)
+
+**15.1 Écrire le script (structure 5-10 min)**
+
+**Introduction (30 sec)**
+```
+Bonjour, nous vous présentons Num_Exam, une plateforme d'optimisation 
+automatique des emplois du temps d'examens universitaires.
+
+Dans une faculté de 13,000 étudiants répartis sur 7 départements et 
+plus de 200 formations, la planification manuelle génère de nombreux 
+conflits. Notre solution automatise ce processus en moins de 45 secondes.
+```
+
+**Démonstration Technique (1 min 30)**
+```
+[Montrer l'écran]
+Voici notre base de données PostgreSQL avec :
+- 13,000 étudiants
+- 310 professeurs
+- 1,470 modules
+- 136 salles disponibles
+
+La plateforme respecte des contraintes strictes :
+- 1 examen maximum par jour pour chaque étudiant
+- 3 surveillances maximum par jour pour chaque professeur
+- Capacité des salles limitée à 20 étudiants
+```
+
+**Génération Automatique (2 min)**
+```
+[Cliquer sur Admin Examens → Générer EDT]
+
+Nous lançons maintenant la génération automatique.
+L'algorithme glouton va :
+1. Trier les modules par nombre d'étudiants
+2. Assigner les créneaux horaires
+3. Vérifier toutes les contraintes
+4. Équilibrer les surveillances
+
+[Attendre et montrer la barre de progression]
+
+Voilà, en XX secondes, 1,470 examens ont été planifiés !
+```
+
+**Détection de Conflits (1 min 30)**
+```
+[Cliquer sur Détection Conflits]
+
+Le système analyse maintenant le planning pour détecter :
+- Les étudiants avec plusieurs examens le même jour
+- Les professeurs surchargés
+- Les dépassements de capacité des salles
+- Les chevauchements horaires
+
+[Montrer les résultats]
+
+Ici, nous voyons que le planning est valide : 0 conflit détecté.
+```
+
+**Dashboards (2 min)**
+```
+[Naviguer dans les pages]
+
+Le Dashboard Doyen offre une vue stratégique avec :
+- Les KPIs globaux
+- L'occupation des salles par jour
+- La répartition par département
+
+Les Chefs de Département peuvent :
+- Consulter leurs statistiques
+- Valider leur planning
+- Détecter les conflits locaux
+
+Les étudiants et professeurs peuvent :
+- Consulter leur emploi du temps personnalisé
+- [Montrer une recherche]
+```
+
+**Conclusion (30 sec - 1 min)**
+```
+En conclusion, Num_Exam automatise la planification des examens, 
+garantit le respect des contraintes, et offre des interfaces adaptées 
+à chaque acteur.
+
+Le projet est déployé en ligne sur Streamlit Cloud avec une base 
+PostgreSQL hébergée sur Neon.tech.
+
+Merci de votre attention.
+
+[Afficher les liens]
+- Application : https://xxxxx.streamlit.app
+- Code source : https://github.com/xxx/num-exam-platform
+```
+
+**15.2 Préparer les supports**
+- [ ] Ouvrir l'application en ligne
+- [ ] Préparer un diaporama de 3-4 slides :
+  - Slide 1 : Titre + Problématique
+  - Slide 2 : Architecture système
+  - Slide 3 : Résultats (benchmarks)
+  - Slide 4 : Liens (app + GitHub)
+- [ ] Tester le déroulement
+
+---
+
+### 🗓️ JOUR 16 : Enregistrement & Montage (3-4h)
+
+**16.1 Setup enregistrement**
+- [ ] Installer OBS Studio (gratuit) : https://obsproject.com/
+- [ ] Configurer la capture d'écran
+- [ ] Tester le micro (parler clairement)
+- [ ] Fermer toutes les applications inutiles
+
+**16.2 Enregistrer (plusieurs prises)**
+- [ ] Prise 1 : S'habituer
+- [ ] Prise 2 : Corriger les erreurs
+- [ ] Prise 3 : Version finale
+- [ ] Garder la meilleure
+
+**16.3 Montage (optionnel)**
+- [ ] Utiliser Camtasia, DaVinci Resolve ou OpenShot
+- [ ] Couper les silences trop longs
+- [ ] Ajouter une intro/outro (5 sec)
+- [ ] Ajouter de la musique de fond (basse, non distrayante)
+
+**16.4 Upload sur YouTube**
+- [ ] Créer une chaîne YouTube (si pas déjà fait)
+- [ ] Cliquer "Créer" → "Importer une vidéo"
+- [ ] Titre : "Num_Exam - Plateforme d'Optimisation des Emplois du Temps"
+- [ ] Description :
+```
+Projet : Plateforme d'optimisation automatique des emplois du temps 
+d'examens universitaires.
+
+🎯 Fonctionnalités :
+- Génération automatique en < 45 secondes
+- Gestion de 13,000 étudiants
+- Détection intelligente des conflits
+- Interfaces multi-rôles
+
+🛠️ Technologies :
+- Backend : Python, PostgreSQL
+- Frontend : Streamlit
+- Hébergement : Streamlit Cloud + Neon.tech
+
+🔗 Liens :
+- Application : https://xxxxx.streamlit.app
+- Code source : https://github.com/xxx/num-exam-platform
+```
+- [ ] Visibilité : **Non répertoriée** (le lien fonctionne mais invisible dans les recherches)
+- [ ] Miniature : Capture d'écran de l'app
+- [ ] Publier et copier le lien
+
+---
+
+## 📅 PHASE 6 : FINALISATION & SOUMISSION (JOURS 17-19)
+
+### 🗓️ JOUR 17 : Tests Finaux (2-3h)
+
+**17.1 Checklist complète**
+- [ ] L'application en ligne fonctionne
+- [ ] La génération EDT marche (< 45 sec)
+- [ ] La détection conflits marche
+- [ ] Toutes les pages s'affichent correctement
+- [ ] Les graphiques sont visibles
+- [ ] La recherche étudiant/prof fonctionne
+- [ ] Le rapport PDF est prêt (10-15 pages)
+- [ ] La vidéo YouTube est publiée (5-10 min)
+
+**17.2 Vérification des liens**
+- [ ] Lien application : `https://xxxxx.streamlit.app`
+- [ ] Lien GitHub : `https://github.com/xxx/num-exam-platform`
+- [ ] Lien YouTube : `https://youtube.com/watch?v=xxxxx`
+- [ ] Tous les liens sont accessibles (tester dans navigation privée)
+
+**17.3 Backup complet**
+- [ ] Faire une copie du dossier projet
+- [ ] Exporter la BD Neon (SQL dump)
+- [ ] Sauvegarder sur Google Drive/Dropbox
+
+---
+
+### 🗓️ JOUR 18 : Préparation Soumission (2h)
+
+**18.1 Créer le README.md sur GitHub**
+```markdown
+# 📚 Num_Exam - Plateforme d'Optimisation des Emplois du Temps
+
+## 🎯 Description
+Plateforme automatique de génération d'emplois du temps d'examens 
+pour une faculté de 13,000 étudiants.
+
+## 🚀 Démonstration
+🌐 **Application en ligne** : https://xxxxx.streamlit.app
+🎥 **Vidéo démonstration** : https://youtube.com/watch?v=xxxxx
+
+## 🛠️ Technologies
+- Backend : Python 3.10+, PostgreSQL
+- Frontend : Streamlit
+- Optimisation : Algorithme glouton
+- Hébergement : Streamlit Cloud + Neon.tech
+
+## 📊 Fonctionnalités
+- ✅ Génération automatique en < 45 secondes
+- ✅ Gestion de 13,000 étudiants, 310 profs, 1,470 modules
+- ✅ Détection intelligente des conflits
+- ✅ Dashboards multi-rôles
+- ✅ Consultation personnalisée
+
+## 👥 Équipe
+- [Nom Membre 1]
+- [Nom Membre 2]
+
+## 📅 Date
+Décembre 2024 - Janvier 2025
+```
+
+**18.2 Commit final**
+```bash
+git add .
+git commit -m "Final version - Ready for submission"
+git push
+```
+
+**18.3 Préparer le document de soumission**
+Créer un fichier `SOUMISSION.txt` avec :
+```
+PROJET : Plateforme d'Optimisation des Emplois du Temps d'Examens
+
+ÉQUIPE :
+- Chef : [Nom + Email]
+- Membre 2 : [Nom + Email]
+
+LIENS :
+🌐 Application : https://xxxxx.streamlit.app
+💻 Code source : https://github.com/xxx/num-exam-platform
+🎥 Vidéo YouTube : https://youtube.com/watch?v=xxxxx
+📄 Rapport (PDF) : [Lien Google Drive si nécessaire]
+
+DATE DE SOUMISSION : 19/01/2026 avant 23:59
+
+NOTES :
+- Application déployée et testée ✅
+- Base de données fonctionnelle (130k+ inscriptions) ✅
+- Génération EDT en 35 secondes ✅
+- 0 conflits détectés ✅
+```
+
+---
+
+### 🗓️ JOUR 19 : SOUMISSION (1h)
+
+**19.1 Vérification finale (30 min)**
+- [ ] Re-tester TOUS les liens
+- [ ] Vérifier que l'app fonctionne
+- [ ] Vérifier que la vidéo est accessible
+- [ ] Vérifier que le rapport est lisible
+
+**19.2 Soumission sur Classroom (10 min)**
+- [ ] Se connecter à Google Classroom
+- [ ] Trouver le devoir "Projet Num_Exam"
+- [ ] Le CHEF du trinôme soumet :
+  - Lien application
+  - Lien GitHub
+  - Lien YouTube
+  - Rapport PDF (si demandé en pièce jointe)
+- [ ] Vérifier que la soumission est bien enregistrée
+- [ ] Faire une capture d'écran de confirmation
+
+**19.3 Confirmation (10 min)**
+- [ ] Envoyer un email de confirmation au professeur (optionnel)
+- [ ] Partager les liens avec les membres du trinôme
+- [ ] Prendre une capture d'écran de tout
+
+---
+
+## 🎉 APRÈS LA SOUMISSION
+
+### Célébrer ! 🎊
+- [ ] Vous avez terminé un projet complexe
+- [ ] Vous avez appris PostgreSQL, Python, Streamlit
+- [ ] Vous avez déployé une vraie application
+- [ ] Vous avez travaillé en équipe
+
+### Garder une trace
+- [ ] Ajouter le projet sur votre CV
+- [ ] Mettre le lien GitHub sur votre profil LinkedIn
+- [ ] Garder le code pour votre portfolio
+
+---
+
+## 📊 RÉSUMÉ DU PLANNING
+
+| Phase | Jours | Durée | Tâches Principales |
+|-------|-------|-------|-------------------|
+| **Setup** | 1-3 | 12h | Installation, BD, Backend |
+| **Frontend** | 4-6 | 12h | Interface Streamlit complète |
+| **Hébergement** | 7-9 | 8h | GitHub, Neon, Streamlit Cloud |
+| **Rapport** | 10-14 | 15h | Rédaction complète 10-15 pages |
+| **Vidéo** | 15-16 | 6h | Script, enregistrement, upload |
+| **Finalisation** | 17-19 | 5h | Tests, soumission |
+| **TOTAL** | **19 jours** | **58h** | **Projet complet** |
+
+---
+
+## 💡 CONSEILS IMPORTANTS
+
+### ⚡ Répartition du travail (2 personnes)
+
+**Personne 1 : Backend & BD**
+- Setup PostgreSQL
+- Génération données
+- Optimizer.py
+- Conflict_detector.py
+- Tests backend
+- Migration Neon
+
+**Personne 2 : Frontend & Docs**
+- Interface Streamlit
+- Toutes les pages
+- Graphiques Plotly
+- Rapport technique
+- Vidéo YouTube
+- GitHub/déploiement
+
+**Ensemble :**
+- Conception initiale (Jour 1)
+- Tests finaux (Jour 17)
+- Soumission (Jour 19)
+
+### 🚨 Checkpoints Critiques
+
+**Checkpoint 1 (Jour 3)** : Backend fonctionnel
+- Si ça ne marche pas → Débugger avant de continuer
+
+**Checkpoint 2 (Jour 6)** : Frontend complet
+- Si problèmes → Simplifier certaines pages
+
+**Checkpoint 3 (Jour 9)** : App en ligne
+- Si échec déploiement → Revoir config ou utiliser autre service
+
+**Checkpoint 4 (Jour 14)** : Rapport terminé
+- Si retard → Couper sections moins importantes
+
+**Checkpoint 5 (Jour 16)** : Vidéo prête
+- Si problèmes tech → Faire screencast simple sans montage
+
+
+---
+
+## ✅ CHECKLIST FINALE
+
+Avant de soumettre, vérifier :
+
+### Technique
+- [ ] L'application est accessible en ligne
+- [ ] La génération EDT fonctionne
+- [ ] La détection conflits fonctionne
+- [ ] Toutes les pages s'affichent
+- [ ] Les graphiques sont visibles
+- [ ] La base de données contient des données
+
+### Documentation
+- [ ] Rapport de 10-15 pages minimum
+- [ ] Schémas MCD/MLD inclus
+- [ ] Captures d'écran claires
+- [ ] Code bien commenté dans les annexes
+- [ ] Benchmarks avec résultats réels
+
+### Vidéo
+- [ ] Durée entre 5 et 10 minutes
+- [ ] Audio clair et audible
+- [ ] Démo complète des fonctionnalités
+- [ ] Liens affichés à la fin
+- [ ] Publiée sur YouTube (non répertoriée)
+
+### Soumission
+- [ ] Les 3 liens fonctionnent
+- [ ] Soumis par le CHEF du trinôme
+- [ ] Avant le 19/01/2026 23:59
+- [ ] Capture d'écran de confirmation
+
+---
+

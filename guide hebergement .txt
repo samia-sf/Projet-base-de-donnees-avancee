@@ -1,0 +1,383 @@
+# 🚀 Guide Complet d'Hébergement Gratuit
+
+## Vue d'ensemble
+
+Vous allez héberger **GRATUITEMENT** votre projet sur :
+- **Streamlit Cloud** : Pour l'application web (interface)
+- **Neon.tech** : Pour la base de données PostgreSQL
+
+**Coût total : 0€ / mois** ✅
+
+---
+
+## 📋 PARTIE 1 : Héberger la Base de Données (Neon.tech)
+
+### Étape 1.1 : Créer un compte Neon
+
+1. Allez sur : **https://neon.tech**
+2. Cliquez sur **"Sign Up"**
+3. Connectez-vous avec **GitHub** (recommandé) ou email
+4. Confirmez votre email
+
+### Étape 1.2 : Créer votre projet PostgreSQL
+
+1. Une fois connecté, cliquez sur **"Create Project"**
+2. Configurez :
+   - **Project name** : `num-exam-db`
+   - **Region** : Choisissez **Europe (Frankfurt)** ou le plus proche
+   - **PostgreSQL version** : 15 (par défaut)
+3. Cliquez sur **"Create Project"**
+
+### Étape 1.3 : Récupérer les identifiants de connexion
+
+Neon vous donne une **Connection String** qui ressemble à :
+
+```
+postgresql://username:password@ep-xxx.eu-central-1.aws.neon.tech/neondb?sslmode=require
+```
+
+**Gardez cette chaîne précieusement !** ⚠️
+
+**Décomposition :**
+- **Host** : `ep-xxx.eu-central-1.aws.neon.tech`
+- **Database** : `neondb`
+- **User** : `username`
+- **Password** : `password`
+- **Port** : `5432`
+
+### Étape 1.4 : Créer le schéma sur Neon
+
+1. Cliquez sur **"SQL Editor"** dans le menu de gauche
+2. Copiez tout le contenu de votre fichier **`schema.sql`**
+3. Collez dans l'éditeur SQL
+4. Cliquez sur **"Run"**
+5. Vérifiez qu'il n'y a pas d'erreurs (✅ toutes les tables doivent être créées)
+
+### Étape 1.5 : Générer les données sur Neon
+
+**Option A : Via script Python local**
+
+```python
+# Modifiez database/seed_data.py
+DB_CONFIG = {
+    'dbname': 'neondb',
+    'user': 'votre_username_neon',
+    'password': 'votre_password_neon',
+    'host': 'ep-xxx.eu-central-1.aws.neon.tech',
+    'port': 5432,
+    'sslmode': 'require'  # IMPORTANT pour Neon
+}
+
+# Puis exécutez
+python database/seed_data.py
+```
+
+**Option B : Via SQL Editor (plus rapide pour test)**
+
+Générez un petit dataset de test :
+```sql
+-- Insérer 7 départements
+INSERT INTO departements (nom, code, responsable_nom) VALUES
+('Informatique', 'INFO', 'Dr. Benali'),
+('Mathématiques', 'MATH', 'Dr. Rahmouni'),
+('Physique', 'PHYS', 'Dr. Khelifi'),
+('Chimie', 'CHIM', 'Dr. Mansouri'),
+('Biologie', 'BIO', 'Dr. Amrani'),
+('Génie Civil', 'GC', 'Dr. Bouazza'),
+('Électronique', 'ELEC', 'Dr. Chaoui');
+
+-- Etc. (données de test minimales)
+```
+
+---
+
+## 📋 PARTIE 2 : Héberger l'Application (Streamlit Cloud)
+
+### Étape 2.1 : Préparer votre dépôt GitHub
+
+1. **Créez un compte GitHub** (si pas déjà fait) : https://github.com
+2. **Créez un nouveau dépôt** :
+   - Nom : `num-exam-platform`
+   - Visibilité : **Public** (requis pour Streamlit Cloud gratuit)
+   - Cochez **"Add README"**
+
+3. **Poussez votre code sur GitHub** :
+
+```bash
+# Dans votre dossier projet
+git init
+git add .
+git commit -m "Initial commit - Plateforme Num_Exam"
+git branch -M main
+git remote add origin https://github.com/VOTRE_USERNAME/num-exam-platform.git
+git push -u origin main
+```
+
+### Étape 2.2 : Structure obligatoire pour Streamlit Cloud
+
+Votre dépôt GitHub doit avoir cette structure :
+
+```
+num-exam-platform/
+├── frontend/
+│   ├── app.py                    # Point d'entrée
+│   └── pages/
+│       ├── 1_🏛️_Dashboard_Doyen.py
+│       ├── 2_👨‍💼_Admin_Examens.py
+│       ├── 3_📊_Chef_Departement.py
+│       └── 4_👥_Consultation.py
+├── backend/
+│   ├── config.py
+│   ├── database.py
+│   ├── optimizer.py
+│   └── conflict_detector.py
+├── requirements.txt
+├── .streamlit/
+│   └── config.toml          # À créer !
+└── README.md
+```
+
+### Étape 2.3 : Créer le fichier de configuration Streamlit
+
+Créez le dossier `.streamlit/` et le fichier `config.toml` :
+
+```toml
+[theme]
+primaryColor = "#667eea"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#262730"
+font = "sans serif"
+
+[server]
+headless = true
+port = 8501
+enableCORS = false
+```
+
+### Étape 2.4 : Modifier config.py pour Streamlit Cloud
+
+**Fichier : `backend/config.py`**
+
+Ajoutez cette section en haut :
+
+```python
+import os
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement
+load_dotenv()
+
+class DatabaseConfig:
+    """Configuration PostgreSQL"""
+    
+    # STREAMLIT CLOUD : Utiliser secrets
+    if os.getenv('STREAMLIT_CLOUD') == 'true':
+        import streamlit as st
+        DB_HOST = st.secrets["database"]["host"]
+        DB_PORT = st.secrets["database"]["port"]
+        DB_NAME = st.secrets["database"]["name"]
+        DB_USER = st.secrets["database"]["user"]
+        DB_PASSWORD = st.secrets["database"]["password"]
+    else:
+        # LOCAL : Utiliser .env
+        DB_HOST = os.getenv('DB_HOST', 'localhost')
+        DB_PORT = os.getenv('DB_PORT', '5432')
+        DB_NAME = os.getenv('DB_NAME', 'num_exam_db')
+        DB_USER = os.getenv('DB_USER', 'postgres')
+        DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
+    
+    # URL de connexion avec SSL pour Neon
+    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode=require"
+    
+    DB_CONFIG = {
+        'dbname': DB_NAME,
+        'user': DB_USER,
+        'password': DB_PASSWORD,
+        'host': DB_HOST,
+        'port': DB_PORT,
+        'sslmode': 'require'  # IMPORTANT pour Neon
+    }
+```
+
+### Étape 2.5 : Créer un compte Streamlit Cloud
+
+1. Allez sur : **https://streamlit.io/cloud**
+2. Cliquez sur **"Sign up"**
+3. Connectez-vous avec **GitHub** (obligatoire)
+4. Autorisez Streamlit à accéder à vos dépôts
+
+### Étape 2.6 : Déployer votre application
+
+1. Cliquez sur **"New app"**
+2. Configurez :
+   - **Repository** : Sélectionnez `num-exam-platform`
+   - **Branch** : `main`
+   - **Main file path** : `frontend/app.py`
+3. Cliquez sur **"Advanced settings"**
+
+### Étape 2.7 : Configurer les Secrets (CRITIQUE !)
+
+Dans **"Advanced settings"**, section **"Secrets"**, ajoutez :
+
+```toml
+# Secrets pour Streamlit Cloud
+STREAMLIT_CLOUD = "true"
+
+[database]
+host = "ep-xxx.eu-central-1.aws.neon.tech"
+port = "5432"
+name = "neondb"
+user = "votre_username_neon"
+password = "votre_password_neon"
+```
+
+⚠️ **Remplacez avec VOS vraies valeurs Neon !**
+
+### Étape 2.8 : Lancer le déploiement
+
+1. Cliquez sur **"Deploy!"**
+2. Attendez 2-5 minutes (Streamlit installe les dépendances)
+3. Votre app sera disponible sur : **`https://votre-app.streamlit.app`**
+
+---
+
+## 🎉 PARTIE 3 : Vérifications Post-Déploiement
+
+### Test 1 : Connexion à la base de données
+
+1. Ouvrez votre app sur `https://votre-app.streamlit.app`
+2. Dans la sidebar, cliquez sur **"Tester la connexion"**
+3. Vous devez voir : **✅ Connecté**
+
+### Test 2 : Génération d'un emploi du temps
+
+1. Allez dans **Pages → Admin Examens**
+2. Cliquez sur **"Générer l'emploi du temps"**
+3. Si ça marche → **SUCCÈS !** 🎉
+
+### Test 3 : Consultation
+
+1. Allez dans **Pages → Consultation**
+2. Testez avec un matricule (ex: `E202400001`)
+3. Vérifiez que les examens s'affichent
+
+---
+
+## ⚠️ PROBLÈMES FRÉQUENTS & SOLUTIONS
+
+### ❌ Erreur : "Connection refused"
+
+**Cause** : Mauvais identifiants Neon
+
+**Solution** :
+1. Retournez sur Neon.tech
+2. Copiez à nouveau la Connection String
+3. Mettez à jour les Secrets dans Streamlit Cloud
+4. Cliquez sur **"Reboot app"**
+
+### ❌ Erreur : "Module not found"
+
+**Cause** : Dépendance manquante dans `requirements.txt`
+
+**Solution** :
+1. Vérifiez que TOUTES les dépendances sont dans `requirements.txt`
+2. Commitez et poussez :
+```bash
+git add requirements.txt
+git commit -m "Fix dependencies"
+git push
+```
+3. Streamlit redéploiera automatiquement
+
+### ❌ Erreur : "SSL connection required"
+
+**Cause** : Oubli du `sslmode=require` pour Neon
+
+**Solution** :
+- Ajoutez `'sslmode': 'require'` dans `DB_CONFIG`
+
+### ❌ L'app est lente
+
+**Cause** : Free tier de Neon (limité)
+
+**Solutions** :
+- Réduisez la quantité de données (générer 1000 étudiants au lieu de 13000)
+- Ajoutez des index SQL sur les colonnes fréquemment requêtées
+- Utilisez `@st.cache_data` pour les requêtes répétées
+
+---
+
+## 📊 PARTIE 4 : Optimisations Performance
+
+### Optimisation 1 : Caching Streamlit
+
+Ajoutez dans vos fichiers pages :
+
+```python
+@st.cache_data(ttl=600)  # Cache 10 minutes
+def charger_donnees():
+    # Vos requêtes ici
+    return data
+```
+
+### Optimisation 2 : Index SQL
+
+Exécutez dans Neon SQL Editor :
+
+```sql
+-- Index sur les colonnes fréquemment filtrées
+CREATE INDEX IF NOT EXISTS idx_examens_date ON examens(date_examen);
+CREATE INDEX IF NOT EXISTS idx_examens_statut ON examens(statut);
+CREATE INDEX IF NOT EXISTS idx_inscriptions_etudiant ON inscriptions(etudiant_id);
+CREATE INDEX IF NOT EXISTS idx_surveillances_prof ON surveillances(professeur_id);
+```
+
+### Optimisation 3 : Compression des données
+
+Dans `seed_data.py`, générez moins de données pour le déploiement :
+
+```python
+# Version production (pour hébergement gratuit)
+generate_etudiants(conn, target=2000)  # Au lieu de 13000
+```
+
+---
+
+## 🔗 LIENS FINAUX À SOUMETTRE
+
+Une fois déployé, vous aurez :
+
+### 1️⃣ Lien de l'application
+```
+https://votre-nom-num-exam.streamlit.app
+```
+
+### 2️⃣ Lien GitHub (code source)
+```
+https://github.com/votre-username/num-exam-platform
+```
+
+### 3️⃣ Lien vidéo YouTube
+```
+https://youtube.com/watch?v=xxxxx
+(À faire après déploiement)
+```
+
+---
+
+## 📝 CHECKLIST AVANT SOUMISSION
+
+- [ ] Application déployée et accessible
+- [ ] Base de données Neon fonctionnelle
+- [ ] Test de génération EDT réussi
+- [ ] Test de détection conflits réussi
+- [ ] Test de consultation étudiant/prof réussi
+- [ ] Code source sur GitHub (public)
+- [ ] README.md à jour avec lien déployement
+- [ ] Rapport technique rédigé (10-15 pages)
+- [ ] Vidéo YouTube enregistrée (5-10 min)
+- [ ] Liens soumis sur Classroom avant le 19/01/2026 23:59
+
+---
+
