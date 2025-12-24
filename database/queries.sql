@@ -1,18 +1,18 @@
 -- ============================================
--- REQUÊTES SQL UTILES - PLATEFORME NUM_EXAM
+-- REQUETES SQL UTILES - PLATEFORME NUM_EXAM
 -- ============================================
 
 -- ============================================
--- STATISTIQUES GÉNÉRALES
+-- STATISTIQUES GENERALES
 -- ============================================
 
--- Nombre total d'entités
+-- Nombre total d'entites
 SELECT 
-    'Départements' as entite, COUNT(*) as nombre FROM departements
+    'Departements' as entite, COUNT(*) as nombre FROM departements
 UNION ALL
 SELECT 'Formations', COUNT(*) FROM formations
 UNION ALL
-SELECT 'Étudiants', COUNT(*) FROM etudiants
+SELECT 'Etudiants', COUNT(*) FROM etudiants
 UNION ALL
 SELECT 'Professeurs', COUNT(*) FROM professeurs
 UNION ALL
@@ -22,7 +22,7 @@ SELECT 'Lieux d''examen', COUNT(*) FROM lieux_examen
 UNION ALL
 SELECT 'Inscriptions', COUNT(*) FROM inscriptions
 UNION ALL
-SELECT 'Examens planifiés', COUNT(*) FROM examens
+SELECT 'Examens planifies', COUNT(*) FROM examens
 UNION ALL
 SELECT 'Surveillances', COUNT(*) FROM surveillances;
 
@@ -30,7 +30,7 @@ SELECT 'Surveillances', COUNT(*) FROM surveillances;
 -- EXAMENS
 -- ============================================
 
--- Liste complète des examens avec détails
+-- Liste complete des examens avec details
 SELECT 
     e.date_examen,
     e.heure_debut,
@@ -50,7 +50,7 @@ JOIN departements d ON f.departement_id = d.id
 JOIN lieux_examen l ON e.lieu_id = l.id
 ORDER BY e.date_examen, e.heure_debut;
 
--- Examens par département
+-- Examens par departement
 SELECT 
     d.nom as departement,
     COUNT(e.id) as nb_examens,
@@ -70,15 +70,15 @@ SELECT
     SUM(nb_etudiants_inscrits) as total_etudiants,
     COUNT(DISTINCT lieu_id) as nb_salles_utilisees
 FROM examens
-WHERE statut = 'Planifié'
+WHERE statut = 'Planifie'
 GROUP BY date_examen
 ORDER BY date_examen;
 
 -- ============================================
--- ÉTUDIANTS
+-- ETUDIANTS
 -- ============================================
 
--- Emploi du temps d'un étudiant
+-- Emploi du temps d'un etudiant
 SELECT 
     e.date_examen,
     e.heure_debut,
@@ -91,11 +91,11 @@ FROM examens e
 JOIN modules m ON e.module_id = m.id
 JOIN inscriptions i ON m.id = i.module_id
 JOIN lieux_examen l ON e.lieu_id = l.id
-WHERE i.etudiant_id = 1  -- Remplacer par l'ID de l'étudiant
+WHERE i.etudiant_id = 1  -- Remplacer par l'ID de l'etudiant
 AND e.annee_academique = '2024-2025'
 ORDER BY e.date_examen, e.heure_debut;
 
--- Étudiants par formation
+-- Etudiants par formation
 SELECT 
     f.nom as formation,
     d.nom as departement,
@@ -139,11 +139,11 @@ FROM professeurs p
 LEFT JOIN surveillances s ON p.id = s.professeur_id
 LEFT JOIN examens e ON s.examen_id = e.id
 LEFT JOIN departements d ON p.departement_id = d.id
-WHERE e.statut = 'Planifié' OR e.id IS NULL
+WHERE e.statut = 'Planifie' OR e.id IS NULL
 GROUP BY p.id, p.matricule, p.nom, p.prenom, d.nom
 ORDER BY nb_surveillances DESC;
 
--- Professeurs les plus sollicités
+-- Professeurs les plus sollicites
 SELECT 
     p.nom || ' ' || p.prenom as professeur,
     d.nom as departement,
@@ -152,7 +152,7 @@ FROM surveillances s
 JOIN professeurs p ON s.professeur_id = p.id
 JOIN departements d ON p.departement_id = d.id
 JOIN examens e ON s.examen_id = e.id
-WHERE e.statut = 'Planifié'
+WHERE e.statut = 'Planifie'
 GROUP BY p.id, p.nom, p.prenom, d.nom
 HAVING COUNT(s.id) > 5
 ORDER BY nb_surveillances DESC;
@@ -161,7 +161,7 @@ ORDER BY nb_surveillances DESC;
 -- CONFLITS
 -- ============================================
 
--- Étudiants avec plusieurs examens le même jour (CONFLIT!)
+-- Etudiants avec plusieurs examens le meme jour (CONFLIT!)
 SELECT 
     et.matricule,
     et.nom,
@@ -173,12 +173,12 @@ FROM examens e
 JOIN modules m ON e.module_id = m.id
 JOIN inscriptions i ON m.id = i.module_id
 JOIN etudiants et ON i.etudiant_id = et.id
-WHERE e.statut = 'Planifié'
+WHERE e.statut = 'Planifie'
 GROUP BY et.id, et.matricule, et.nom, et.prenom, e.date_examen
 HAVING COUNT(*) > 1
 ORDER BY nb_examens DESC, e.date_examen;
 
--- Professeurs avec trop de surveillances un même jour (> 3)
+-- Professeurs avec trop de surveillances un meme jour (> 3)
 SELECT 
     p.matricule,
     p.nom,
@@ -190,12 +190,12 @@ FROM surveillances s
 JOIN professeurs p ON s.professeur_id = p.id
 JOIN examens e ON s.examen_id = e.id
 JOIN modules m ON e.module_id = m.id
-WHERE e.statut = 'Planifié'
+WHERE e.statut = 'Planifie'
 GROUP BY p.id, p.matricule, p.nom, p.prenom, e.date_examen
 HAVING COUNT(*) > 3
 ORDER BY nb_surveillances DESC;
 
--- Salles avec dépassement de capacité
+-- Salles avec depassement de capacité
 SELECT 
     l.nom as salle,
     l.capacite_examen,
@@ -209,7 +209,7 @@ JOIN modules m ON e.module_id = m.id
 WHERE e.nb_etudiants_inscrits > l.capacite_examen
 ORDER BY depassement DESC;
 
--- Chevauchements de salles (même salle, même créneau)
+-- Chevauchements de salles (meme salle, meme créneau)
 SELECT 
     l.nom as salle,
     e1.date_examen,
@@ -225,7 +225,7 @@ JOIN examens e2 ON
 JOIN lieux_examen l ON e1.lieu_id = l.id
 JOIN modules m1 ON e1.module_id = m1.id
 JOIN modules m2 ON e2.module_id = m2.id
-WHERE e1.statut = 'Planifié' AND e2.statut = 'Planifié';
+WHERE e1.statut = 'Planifie' AND e2.statut = 'Planifie';
 
 -- ============================================
 -- OCCUPATION DES RESSOURCES
@@ -242,26 +242,26 @@ SELECT
         2
     ) as taux_occupation_pct
 FROM examens e
-WHERE e.statut = 'Planifié'
+WHERE e.statut = 'Planifie'
 GROUP BY e.date_examen
 ORDER BY e.date_examen;
 
--- Salles les plus utilisées
+-- Salles les plus utilisees
 SELECT 
     l.nom as salle,
     l.type,
     COUNT(e.id) as nb_utilisations,
     SUM(e.nb_etudiants_inscrits) as total_etudiants
 FROM lieux_examen l
-LEFT JOIN examens e ON l.id = e.lieu_id AND e.statut = 'Planifié'
+LEFT JOIN examens e ON l.id = e.lieu_id AND e.statut = 'Planifie'
 GROUP BY l.id, l.nom, l.type
 ORDER BY nb_utilisations DESC;
 
 -- ============================================
--- STATISTIQUES PAR DÉPARTEMENT
+-- STATISTIQUES PAR DEPARTEMENT
 -- ============================================
 
--- Vue complète par département
+-- Vue complete par departement
 SELECT 
     d.nom as departement,
     COUNT(DISTINCT f.id) as nb_formations,
@@ -274,24 +274,24 @@ LEFT JOIN formations f ON d.id = f.departement_id
 LEFT JOIN modules m ON f.id = m.formation_id
 LEFT JOIN etudiants et ON f.id = et.formation_id
 LEFT JOIN professeurs p ON d.id = p.departement_id
-LEFT JOIN examens e ON m.id = e.module_id AND e.statut = 'Planifié'
+LEFT JOIN examens e ON m.id = e.module_id AND e.statut = 'Planifie'
 GROUP BY d.id, d.nom
 ORDER BY d.nom;
 
 -- ============================================
--- VALIDATION ET VÉRIFICATION
+-- VALIDATION ET VERIFICATION
 -- ============================================
 
--- Vérifier l'intégrité des données
+-- Verifier l'integrite des donnees
 SELECT 
-    'Étudiants sans formation' as verification,
+    'Etudiants sans formation' as verification,
     COUNT(*) as nombre
 FROM etudiants
 WHERE formation_id IS NULL
 UNION ALL
 SELECT 
     'Modules sans responsable',
-    COUNT(*)
+    COUNT(*) 
 FROM modules
 WHERE professeur_responsable_id IS NULL
 UNION ALL
@@ -300,14 +300,14 @@ SELECT
     COUNT(DISTINCT e.id)
 FROM examens e
 LEFT JOIN surveillances s ON e.id = s.examen_id
-WHERE e.statut = 'Planifié' AND s.id IS NULL;
+WHERE e.statut = 'Planifie' AND s.id IS NULL;
 
--- Résumé global pour validation
+-- Resume global pour validation
 SELECT 
-    'Total examens planifiés' as indicateur,
+    'Total examens planifies' as indicateur,
     COUNT(*)::text as valeur
 FROM examens
-WHERE statut = 'Planifié'
+WHERE statut = 'Planifie'
 UNION ALL
 SELECT 
     'Modules sans examen',
@@ -315,26 +315,25 @@ SELECT
 FROM modules m
 WHERE NOT EXISTS (
     SELECT 1 FROM examens e 
-    WHERE e.module_id = m.id AND e.statut = 'Planifié'
+    WHERE e.module_id = m.id AND e.statut = 'Planifie'
 )
 UNION ALL
 SELECT 
-    'Conflits étudiants',
+    'Conflits etudiants',
     COUNT(DISTINCT etudiant_id || '-' || date_examen)::text
 FROM (
     SELECT i.etudiant_id, e.date_examen
     FROM examens e
     JOIN modules m ON e.module_id = m.id
     JOIN inscriptions i ON m.id = i.module_id
-    WHERE e.statut = 'Planifié'
+    WHERE e.statut = 'Planifie'
     GROUP BY i.etudiant_id, e.date_examen
     HAVING COUNT(*) > 1
 ) conflits
 UNION ALL
 SELECT 
-    'Professeurs mobilisés',
+    'Professeurs mobilises',
     COUNT(DISTINCT professeur_id)::text
 FROM surveillances s
 JOIN examens e ON s.examen_id = e.id
-WHERE e.statut = 'Planifié';
-
+WHERE e.statut = 'Planifie';
