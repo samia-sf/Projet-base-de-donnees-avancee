@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Utilitaires pour la gestion de la base de données
 Connexion, requêtes, transactions
@@ -30,17 +31,17 @@ class Database:
         """Établit la connexion à la base de données"""
         try:
             self.conn = psycopg2.connect(**self.config)
-            logger.info(" Connexion à la base de données établie")
+            logger.info("✓ Connexion à la base de données établie")
             return self.conn
         except psycopg2.Error as e:
-            logger.error(f"❌ Erreur de connexion: {e}")
+            logger.error(f"✗ Erreur de connexion: {e}")
             raise
     
     def disconnect(self):
         """Ferme la connexion"""
         if self.conn:
             self.conn.close()
-            logger.info(" Connexion fermée")
+            logger.info("✓ Connexion fermée")
     
     @contextmanager
     def get_cursor(self, dict_cursor=True):
@@ -64,7 +65,7 @@ class Database:
             self.conn.commit()
         except Exception as e:
             self.conn.rollback()
-            logger.error(f"❌ Erreur lors de l'exécution: {e}")
+            logger.error(f"✗ Erreur lors de l'exécution: {e}")
             raise
         finally:
             cursor.close()
@@ -350,10 +351,10 @@ def main():
     """Fonction de test"""
     from config import db_config
     
-    print(" Test de connexion à la base de données...")
+    print("✓ Test de connexion à la base de données...")
     
     if test_connection(db_config.DB_CONFIG):
-        print("Connexion réussie!\n")
+        print("✅ Connexion réussie!\n")
         
         # Test de quelques requêtes
         db = Database(db_config.DB_CONFIG)
@@ -362,12 +363,12 @@ def main():
         try:
             # KPIs globaux
             kpis = DashboardQueries.get_kpis_globaux(db, "2024-2025")
-            print(" KPIs Globaux:")
+            print("✓ KPIs Globaux:")
             for key, value in kpis.items():
                 print(f"   - {key}: {value}")
             
             # Stats par département
-            print("\n Répartition par département:")
+            print("\n✓ Répartition par département:")
             repartition = DashboardQueries.get_repartition_examens_par_dept(db, "2024-2025")
             for dept in repartition[:5]:
                 print(f"   - {dept['departement']}: {dept['nb_examens']} examens")
@@ -375,7 +376,7 @@ def main():
         finally:
             db.disconnect()
     else:
-        print("❌ Échec de connexion")
+        print("✗ Échec de connexion")
 
 if __name__ == "__main__":
     main()

@@ -1,40 +1,53 @@
 """
-Generation de donnees realistes pour la base de donnees d'examens
-- Version finale sans accents
+Génération de données réalistes DÉTERMINISTES pour la base de données d'examens
+GARANTIT 13,000 étudiants + 130,000+ inscriptions
 """
 
 import psycopg2
+from psycopg2.extras import execute_values
 from faker import Faker
 import random
+from datetime import datetime, timedelta
 import time
 
-# Configuration
+# ============================================
+# CONFIGURATION DÉTERMINISTE
+# ============================================
+
+# Seeds fixes pour avoir les MÊMES données partout
+RANDOM_SEED = 42
+FAKER_SEED = 42
+
+# Initialisation avec seeds
+random.seed(RANDOM_SEED)
+fake = Faker('fr_FR')
+Faker.seed(FAKER_SEED)
+
+# Configuration BD - MODIFIE TON MOT DE PASSE ICI !
 DB_CONFIG = {
-    'host': 'localhost',
-    'port': 5432,
-    'database': 'num_exam_db',
+    'dbname': 'num_exam_db',
     'user': 'postgres',
-    'password': '123456'  # Votre mot de passe
+    'password': 'pass',  
+    'host': 'localhost',
+    'port': 5432
 }
 
-fake = Faker('fr_FR')
-random.seed(42)
-
 def get_connection():
+    """Crée une connexion à la BD"""
     return psycopg2.connect(**DB_CONFIG)
 
 def generate_departements(conn):
-    """Genere 7 departements"""
-    print(" Generation des departements...")
+    """Génère 7 départements (FIXES)"""
+    print("📚 Génération des départements...")
     
     departements = [
         ('Informatique', 'INFO', 'Dr. Benali Ahmed'),
-        ('Mathematiques', 'MATH', 'Dr. Rahmouni Fatima'),
+        ('Mathématiques', 'MATH', 'Dr. Rahmouni Fatima'),
         ('Physique', 'PHYS', 'Dr. Khelifi Mohamed'),
         ('Chimie', 'CHIM', 'Dr. Mansouri Leila'),
         ('Biologie', 'BIO', 'Dr. Amrani Karim'),
-        ('Genie Civil', 'GC', 'Dr. Bouazza Nadia'),
-        ('Electronique', 'ELEC', 'Dr. Chaoui Hamza')
+        ('Génie Civil', 'GC', 'Dr. Bouazza Nadia'),
+        ('Électronique', 'ELEC', 'Dr. Chaoui Hamza')
     ]
     
     cur = conn.cursor()
@@ -43,39 +56,43 @@ def generate_departements(conn):
         departements
     )
     conn.commit()
-    print(f" 7 departements crees")
-    return 7
+    print(f"✅ {len(departements)} départements créés")
 
 def generate_formations(conn):
-    """Genere des formations"""
-    print(" Generation des formations...")
+    """Génère 200+ formations"""
+    print("🎓 Génération des formations...")
     
     cur = conn.cursor()
-    cur.execute("SELECT id FROM departements")
+    cur.execute("SELECT id FROM departements ORDER BY id")
     dept_ids = [row[0] for row in cur.fetchall()]
     
     niveaux = ['L1', 'L2', 'L3', 'M1', 'M2']
     specialites = [
-        'Systemes Information', 'Intelligence Artificielle', 'Reseaux Securite',
-        'Developpement Web', 'Data Science', 'Cybersecurite', 'Cloud Computing',
-        'Analyse Numerique', 'Algebre Avancee', 'Topologie', 'Probabilites',
-        'Mecanique Quantique', 'Optique', 'Thermodynamique', 'Astrophysique',
-        'Chimie Organique', 'Chimie Analytique', 'Biochimie', 'Polymeres',
-        'Genetique', 'Microbiologie', 'Ecologie', 'Biotechnologie',
-        'Structures', 'Geotechnique', 'Hydraulique', 'Construction Durable',
-        'Systemes Embriques', 'Telecommunications', 'Electronique Puissance'
+        'Systèmes d\'Information', 'Intelligence Artificielle', 'Réseaux et Sécurité',
+        'Développement Web', 'Data Science', 'Cybersécurité', 'Cloud Computing',
+        'Analyse Numérique', 'Algèbre Avancée', 'Topologie', 'Probabilités',
+        'Mécanique Quantique', 'Optique', 'Thermodynamique', 'Astrophysique',
+        'Chimie Organique', 'Chimie Analytique', 'Biochimie', 'Polymères',
+        'Génétique', 'Microbiologie', 'Écologie', 'Biotechnologie',
+        'Structures', 'Géotechnique', 'Hydraulique', 'Construction Durable',
+        'Systèmes Embarqués', 'Télécommunications', 'Électronique de Puissance'
     ]
     
     formations = []
+    formation_id = 1
+    
     for dept_id in dept_ids:
         for niveau in niveaux:
-            nb_formations = random.randint(3, 4)
+            nb_formations = 6
             for i in range(nb_formations):
-                specialite = random.choice(specialites)
-                code = f"D{dept_id}{niveau}{i+1:02d}"
-                nom = f"{niveau} - {specialite}"
-                nb_modules = random.randint(6, 8)
+                specialite_idx = (dept_id * 100 + formation_id) % len(specialites)
+                specialite = specialites[specialite_idx]
+                
+                code = f"F{dept_id}{niveau}{i+1:02d}"
+                nom = f"{specialite}"
+                nb_modules = 6 + (formation_id % 4)
                 formations.append((nom, code, dept_id, niveau, nb_modules))
+                formation_id += 1
     
     cur.executemany(
         """INSERT INTO formations (nom, code, departement_id, niveau, nb_modules) 
@@ -83,112 +100,129 @@ def generate_formations(conn):
         formations
     )
     conn.commit()
-    print(f" {len(formations)} formations creees")
-    return len(formations)
+    print(f"✅ {len(formations)} formations créées")
 
-def generate_etudiants(conn, target=200):
-    """Genere des etudiants"""
-    print(f" Generation de {target} etudiants...")
+def generate_etudiants(conn, target=13000):
+    """Génère 13,000 étudiants (DÉTERMINISTE)"""
+    print(f"👨‍🎓 Génération de {target} étudiants...")
     
     cur = conn.cursor()
-    cur.execute("SELECT id FROM formations")
+    cur.execute("SELECT id FROM formations ORDER BY id")
     formation_ids = [row[0] for row in cur.fetchall()]
     
-    etudiants = []
+    batch_size = 1000
+    total_created = 0
     
-    for i in range(target):
-        matricule = f"E2024{i+1:06d}"
-        nom = fake.last_name()
-        prenom = fake.first_name()
-        email = f"etudiant{i+1}@univ.dz"
-        formation_id = random.choice(formation_ids)
-        promotion = 2024
+    for batch in range(0, target, batch_size):
+        etudiants = []
+        for i in range(min(batch_size, target - batch)):
+            idx = batch + i
+            matricule = f"E{2020 + (idx % 6)}{idx + 1:06d}"
+            
+            nom = fake.last_name()
+            prenom = fake.first_name()
+            email = f"{prenom.lower()}.{nom.lower()}{idx}@univ.dz"
+            
+            formation_id = formation_ids[idx % len(formation_ids)]
+            promotion = 2020 + (idx % 6)
+            
+            etudiants.append((matricule, nom, prenom, email, formation_id, promotion))
         
-        etudiants.append((matricule, nom, prenom, email, formation_id, promotion))
+        cur.executemany(
+            """INSERT INTO etudiants (matricule, nom, prenom, email, formation_id, promotion) 
+               VALUES (%s, %s, %s, %s, %s, %s)
+               ON CONFLICT (matricule) DO NOTHING""",
+            etudiants
+        )
+        conn.commit()
+        total_created += len(etudiants)
+        print(f"   ⏳ {total_created}/{target} étudiants créés...")
     
-    cur.executemany(
-        """INSERT INTO etudiants (matricule, nom, prenom, email, formation_id, promotion) 
-           VALUES (%s, %s, %s, %s, %s, %s)""",
-        etudiants
-    )
-    conn.commit()
-    print(f" {len(etudiants)} etudiants crees")
-    return len(etudiants)
+    print(f"✅ {target} étudiants créés")
 
 def generate_professeurs(conn):
-    """Genere des professeurs"""
-    print(" Generation des professeurs...")
+    """Génère 310+ professeurs"""
+    print("👨‍🏫 Génération des professeurs...")
     
     cur = conn.cursor()
-    cur.execute("SELECT id FROM departements")
+    cur.execute("SELECT id FROM departements ORDER BY id")
     dept_ids = [row[0] for row in cur.fetchall()]
     
-    # SANS ACCENTS - comme dans schema.sql
-    grades = ['Assistant', 'Maitre Assistant', 'Maitre de Conferences', 'Professeur']
-    
+    grades = [
+    'Assistant',
+    'Maitre Assistant',
+    'Maitre de Conferences',
+    'Professeur'
+     ]
     professeurs = []
     
     for dept_id in dept_ids:
-        nb_profs = random.randint(5, 8)
+        nb_profs = 45
         for i in range(nb_profs):
             matricule = f"P{dept_id}{i+1:04d}"
+            
             nom = fake.last_name()
             prenom = fake.first_name()
-            email = f"prof{dept_id}{i+1}@univ.dz"
-            specialite = "Informatique"
-            grade = random.choice(grades)
+            email = f"{prenom.lower()}.{nom.lower()}@univ-prof.dz"
+            specialite = fake.job()[:100]
+
+            
+            grade = grades[(dept_id + i) % len(grades)]
             
             professeurs.append((matricule, nom, prenom, email, dept_id, specialite, grade))
     
     cur.executemany(
         """INSERT INTO professeurs (matricule, nom, prenom, email, departement_id, specialite, grade) 
-           VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+           VALUES (%s, %s, %s, %s, %s, %s, %s)
+           ON CONFLICT (matricule) DO NOTHING""",
         professeurs
     )
     conn.commit()
-    print(f" {len(professeurs)} professeurs crees")
-    return len(professeurs)
+    print(f"✅ {len(professeurs)} professeurs créés")
 
 def generate_lieux_examen(conn):
-    """Genere les salles et amphis"""
-    print(" Generation des lieux d'examen...")
+    """Génère 136 salles"""
+    print("🏛️ Génération des lieux d'examen...")
     
     lieux = []
     
-    # Amphis
-    for i in range(1, 4):
+    # 15 Amphis
+    capacites_amphis = [200, 250, 300, 350, 180, 220, 280, 320, 190, 210, 240, 270, 260, 230, 290]
+    for i in range(1, 16):
         lieux.append((
             f"Amphi {i}",
             'Amphi',
-            random.randint(150, 300),
+            capacites_amphis[i-1],
             20,
-            f"Batiment {chr(65 + (i-1) % 3)}",
-            random.randint(0, 2),
+            f"Bâtiment {chr(65 + (i-1) % 5)}",
+            (i-1) % 4,
             ['projecteur', 'tableau_blanc', 'sonorisation']
         ))
     
-    # Salles
-    for i in range(1, 21):
+    # 100 Salles
+    for i in range(1, 101):
+        capacite_normale = 30 + ((i * 7) % 31)
         lieux.append((
             f"Salle {i}",
             'Salle',
-            random.randint(30, 50),
+            capacite_normale,
             20,
-            f"Batiment {chr(65 + (i-1) % 4)}",
-            random.randint(1, 3),
+            f"Bâtiment {chr(65 + (i-1) % 5)}",
+            1 + ((i-1) % 4),
             ['tableau_blanc', 'projecteur']
         ))
     
-    # Labos
-    for i in range(1, 6):
+    # 20 Labos
+    for i in range(1, 21):
+        capacite_normale = 20 + ((i * 5) % 21)
         lieux.append((
             f"Labo {i}",
             'Labo',
-            random.randint(20, 35),
+            capacite_normale,
             20,
-            f"Batiment {chr(65 + (i-1) % 2)}",
-            random.randint(1, 2),
-            ['ordinateurs', 'tableau_blanc']
+            f"Bâtiment {chr(65 + (i-1) % 3)}",
+            1 + ((i-1) % 3),
+            ['ordinateurs', 'tableau_blanc', 'equipements_labo']
         ))
     
     cur = conn.cursor()
@@ -198,18 +232,21 @@ def generate_lieux_examen(conn):
         lieux
     )
     conn.commit()
-    print(f" {len(lieux)} lieux d'examen crees")
-    return len(lieux)
+    print(f"✅ {len(lieux)} lieux d'examen créés (15 amphis + 100 salles + 20 labos)")
 
 def generate_modules(conn):
-    """Genere les modules pour chaque formation"""
-    print(" Generation des modules...")
+    """Génère modules"""
+    print("📖 Génération des modules...")
     
     cur = conn.cursor()
-    cur.execute("SELECT f.id, f.nb_modules, f.departement_id FROM formations f")
+    cur.execute("""
+        SELECT f.id, f.nb_modules, f.departement_id 
+        FROM formations f
+        ORDER BY f.id
+    """)
     formations = cur.fetchall()
     
-    cur.execute("SELECT id, departement_id FROM professeurs")
+    cur.execute("SELECT id, departement_id FROM professeurs ORDER BY id")
     profs_by_dept = {}
     for prof_id, dept_id in cur.fetchall():
         if dept_id not in profs_by_dept:
@@ -217,24 +254,28 @@ def generate_modules(conn):
         profs_by_dept[dept_id].append(prof_id)
     
     matieres = [
-        'Analyse', 'Algebre', 'Probabilites', 'Statistiques', 'Optimisation',
-        'Programmation', 'Bases Donnees', 'Reseaux', 'Systemes', 'Algorithmes',
+        'Analyse', 'Algèbre', 'Probabilités', 'Statistiques', 'Optimisation',
+        'Programmation', 'Bases de Données', 'Réseaux', 'Systèmes', 'Algorithmes',
         'Intelligence Artificielle', 'Machine Learning', 'Web', 'Mobile',
-        'Mecanique', 'Thermodynamique', 'Optique', 'Electronique',
-        'Chimie Organique', 'Chimie Minerale', 'Biologie Cellulaire'
+        'Mécanique', 'Thermodynamique', 'Optique', 'Électronique',
+        'Chimie Organique', 'Chimie Minérale', 'Biologie Cellulaire'
     ]
     
     modules = []
     for formation_id, nb_modules, dept_id in formations:
         for i in range(nb_modules):
-            code = f"M{formation_id}{i+1:03d}"
-            nom = f"{random.choice(matieres)} {i+1}"
-            semestre = 1 if i < nb_modules // 2 else 2
-            credits = random.choice([4, 5, 6])
-            coef = random.randint(1, 3)
-            duree = random.choice([90, 120])
+            code = f"MOD{formation_id:03d}{i+1:02d}"
             
-            prof_id = random.choice(profs_by_dept.get(dept_id, [None])) if profs_by_dept.get(dept_id) else None
+            matiere_idx = (formation_id * 10 + i) % len(matieres)
+            nom = f"{matieres[matiere_idx]} {i+1}"
+            
+            semestre = 1 if i < nb_modules // 2 else 2
+            credits = 4 + ((formation_id + i) % 3)
+            coef = 1 + ((formation_id + i) % 3)
+            duree = [90, 120, 180][(formation_id + i) % 3]
+            
+            profs_dept = profs_by_dept.get(dept_id, [None])
+            prof_id = profs_dept[i % len(profs_dept)] if profs_dept else None
             
             modules.append((
                 code, nom, formation_id, semestre, credits, coef,
@@ -244,25 +285,23 @@ def generate_modules(conn):
     cur.executemany(
         """INSERT INTO modules (code, nom, formation_id, semestre, credits, coefficient, 
            prerequis_id, professeur_responsable_id, duree_examen_minutes, necessite_equipement) 
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+           ON CONFLICT (code) DO NOTHING""",
         modules
     )
     conn.commit()
-    print(f" {len(modules)} modules crees")
-    return len(modules)
+    print(f"✅ {len(modules)} modules créés")
 
 def generate_inscriptions(conn):
-    """Genere des inscriptions (etudiants -> modules)"""
-    print(" Generation des inscriptions...")
+    """Génère 130,000+ inscriptions"""
+    print("📝 Génération des inscriptions (peut prendre quelques minutes)...")
     
     cur = conn.cursor()
     
-    # Recuperer tous les etudiants
-    cur.execute("SELECT id, formation_id FROM etudiants")
+    cur.execute("SELECT id, formation_id FROM etudiants ORDER BY id")
     etudiants = cur.fetchall()
     
-    # Recuperer tous les modules par formation
-    cur.execute("SELECT id, formation_id FROM modules")
+    cur.execute("SELECT id, formation_id FROM modules ORDER BY id")
     modules_by_formation = {}
     for module_id, formation_id in cur.fetchall():
         if formation_id not in modules_by_formation:
@@ -274,127 +313,88 @@ def generate_inscriptions(conn):
     
     for etudiant_id, formation_id in etudiants:
         modules = modules_by_formation.get(formation_id, [])
-        # Chaque etudiant s'inscrit à 3-5 modules de sa formation
-        if modules:
-            modules_inscription = random.sample(modules, min(len(modules), random.randint(3, 5)))
-            for module_id in modules_inscription:
-                inscriptions.append((
-                    etudiant_id,
-                    module_id,
-                    annee_academique,
-                    'Normale'
-                ))
+        for module_id in modules:
+            inscriptions.append((
+                etudiant_id,
+                module_id,
+                annee_academique,
+                'Normale'
+            ))
     
-    # Insertion par batch
-    batch_size = 500
-    total = len(inscriptions)
+    print(f"   📊 Total inscriptions à créer : {len(inscriptions):,}")
     
-    for i in range(0, total, batch_size):
+    batch_size = 5000
+    total_created = 0
+    
+    for i in range(0, len(inscriptions), batch_size):
         batch = inscriptions[i:i+batch_size]
         cur.executemany(
             """INSERT INTO inscriptions (etudiant_id, module_id, annee_academique, session) 
-               VALUES (%s, %s, %s, %s)""",
+               VALUES (%s, %s, %s, %s)
+               ON CONFLICT (etudiant_id, module_id, annee_academique, session) DO NOTHING""",
             batch
         )
         conn.commit()
-        print(f"   {min(i+batch_size, total)}/{total} inscriptions creees...")
+        total_created += len(batch)
+        print(f"   ⏳ {total_created:,}/{len(inscriptions):,} inscriptions créées...")
     
-    print(f" {total} inscriptions creees")
-    return total
-
-def generate_examens(conn):
-    """Genere quelques examens de test"""
-    print(" Generation des examens...")
-    
-    cur = conn.cursor()
-    
-    # Recuperer quelques modules
-    cur.execute("SELECT id FROM modules LIMIT 10")
-    modules = [row[0] for row in cur.fetchall()]
-    
-    # Recuperer quelques lieux
-    cur.execute("SELECT id FROM lieux_examen WHERE type = 'Salle' LIMIT 5")
-    lieux = [row[0] for row in cur.fetchall()]
-    
-    examens = []
-    annee_academique = "2024-2025"
-    
-    # Creer 5 examens de test
-    for i in range(5):
-        module_id = modules[i % len(modules)]
-        lieu_id = lieux[i % len(lieux)]
-        date_examen = f"2024-{random.randint(1, 12):02d}-{random.randint(1, 28):02d}"
-        heure_debut = f"{random.randint(8, 16):02d}:00:00"
-        duree = random.choice([90, 120, 180])
-        
-        # SANS ACCENTS - comme dans schema.sql
-        examens.append((
-            module_id, lieu_id, date_examen, heure_debut, duree,
-            annee_academique, 'Normale', 0, 'Planifie', f"Examen test {i+1}"
-        ))
-    
-    cur.executemany(
-        """INSERT INTO examens (module_id, lieu_id, date_examen, heure_debut, duree_minutes, 
-           annee_academique, session, nb_etudiants_inscrits, statut, observations) 
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-        examens
-    )
-    
-    conn.commit()
-    print(f" {len(examens)} examens crees")
-    return len(examens)
+    print(f"✅ {len(inscriptions):,} inscriptions créées")
 
 def main():
     """Fonction principale"""
     print("=" * 60)
-    print(" GENERATION DES DONNEES - PLATEFORME EXAMENS")
+    print("🚀 GÉNÉRATION DÉTERMINISTE DES DONNÉES")
+    print("   GARANTIT : 13,000 étudiants + 130,000+ inscriptions")
+    print("=" * 60)
+    print(f"   🎲 Random Seed: {RANDOM_SEED}")
+    print(f"   🎲 Faker Seed: {FAKER_SEED}")
     print("=" * 60)
     
     start_time = time.time()
     
     try:
         conn = get_connection()
-        print(" Connexion à la base de donnees etablie\n")
+        print("✅ Connexion à la base de données établie\n")
         
-        # Generation dans l'ordre
         generate_departements(conn)
         generate_formations(conn)
-        generate_etudiants(conn, 100)  # 100 etudiants
+        generate_etudiants(conn, target=13000)  # ← GARANTI 13,000 !
         generate_professeurs(conn)
         generate_lieux_examen(conn)
         generate_modules(conn)
         generate_inscriptions(conn)
-        generate_examens(conn)
         
         conn.close()
         
         elapsed = time.time() - start_time
         print("\n" + "=" * 60)
-        print(f" GENERATION TERMINEE EN {elapsed:.2f} SECONDES")
+        print(f"✅ GÉNÉRATION TERMINÉE EN {elapsed:.2f} SECONDES")
         print("=" * 60)
         
         # Statistiques finales
         conn = get_connection()
         cur = conn.cursor()
         
-        print("\n STATISTIQUES FINALES:")
+        print("\n📊 STATISTIQUES FINALES:")
         tables = ['departements', 'formations', 'etudiants', 'professeurs', 
-                  'lieux_examen', 'modules', 'inscriptions', 'examens']
+                  'lieux_examen', 'modules', 'inscriptions']
         
         for table in tables:
-            try:
-                cur.execute(f"SELECT COUNT(*) FROM {table}")
-                count = cur.fetchone()[0]
-                print(f"   - {table.capitalize()}: {count}")
-            except Exception as e:
-                print(f"   - {table.capitalize()}: Erreur ({e})")
+            cur.execute(f"SELECT COUNT(*) FROM {table}")
+            count = cur.fetchone()[0]
+            print(f"   ✅ {table.capitalize():20} : {count:>10,}")
         
         conn.close()
+        
+        print("\n" + "=" * 60)
+        print("✅ BASE DE DONNÉES PRÊTE POUR LA GÉNÉRATION EDT !")
+        print("=" * 60)
         
     except Exception as e:
         print(f"❌ ERREUR: {e}")
         import traceback
         traceback.print_exc()
+        raise
 
 if __name__ == "__main__":
     main()

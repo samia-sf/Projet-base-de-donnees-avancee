@@ -1,273 +1,316 @@
-# 📚 Num_Exam - Plateforme d'Optimisation des Emplois du Temps d'Examens
+# Num_Exam - Plateforme d'Optimisation des Examens Universitaires
 
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.29+-red.svg)](https://streamlit.io/)
+## Description
 
-## 🎯 Description
+Système intelligent de génération et d'optimisation automatique des emplois du temps d'examens pour une université de 13,000 étudiants, 7 départements et 200+ formations.
 
-Plateforme automatique de génération d'emplois du temps d'examens universitaires pour une faculté de **13,000 étudiants** répartis sur **7 départements** et **200+ formations**.
+**Objectif:** Générer un planning optimal en moins de 45 secondes.
 
-Le système génère automatiquement des plannings optimaux en **moins de 45 secondes** tout en respectant de multiples contraintes complexes.
+## Architecture
 
-## 🚀 Démonstration
-
-- 🌐 **Application en ligne** : [https://votre-app.streamlit.app](https://votre-app.streamlit.app)
-- 🎥 **Vidéo de démonstration** : [Lien YouTube à ajouter](https://youtube.com)
-
-
-## ✨ Fonctionnalités Principales
-
-### 🎓 Pour les Étudiants
-- Consultation personnalisée de l'emploi du temps
-- Recherche par matricule
-- Export PDF de l'emploi du temps
-
-### 👨‍🏫 Pour les Professeurs
-- Visualisation des surveillances assignées
-- Planning personnel des surveillances
-- Statistiques individuelles
-
-### 👨‍💼 Pour les Administrateurs
-- **Génération automatique** des emplois du temps (< 45 secondes)
-- **Détection intelligente** des conflits
-- Optimisation des ressources (salles, professeurs)
-- Gestion des contraintes multiples
-
-### 🏛️ Pour le Doyen/Vice-doyen
-- Dashboard stratégique global
-- KPIs académiques en temps réel
-- Validation finale des plannings
-- Vue d'ensemble par département
-
-### 📊 Pour les Chefs de Département
-- Statistiques départementales
-- Validation par département
-- Détection des conflits locaux
-
-## 🛠️ Technologies Utilisées
-
-### Backend
-- **Python 3.10+** - Langage principal
-- **PostgreSQL 15** - Base de données relationnelle
-- **psycopg2** - Connecteur PostgreSQL
-- **pandas** - Manipulation de données
-
-### Frontend
-- **Streamlit** - Framework d'interface web
-- **Plotly** - Visualisations interactives
-- **Bootstrap** - Styling (via Streamlit)
-
-### Optimisation
-- **Algorithme glouton** personnalisé
-- **Structures de données optimisées** (dictionnaires, defaultdict)
-- **Index SQL** pour performances
-
-### Hébergement
-- **Streamlit Cloud** - Hébergement application (gratuit)
-- **Neon.tech** - Base de données PostgreSQL (gratuit)
-
-## 📊 Architecture du Système
 ```
-┌─────────────────────────────────────────────┐
-│         Frontend (Streamlit)                │
-│  - Dashboard Doyen                          │
-│  - Admin Examens                            │
-│  - Chef Département                         │
-│  - Consultation                             │
-└──────────────────┬──────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────┐
-│         Backend (Python)                    │
-│  - Optimizer (Génération EDT)               │
-│  - Conflict Detector                        │
-│  - Analytics & KPIs                         │
-└──────────────────┬──────────────────────────┘
-                   │
-                   ▼
-┌─────────────────────────────────────────────┐
-│    Base de Données (PostgreSQL)             │
-│  - 9 tables principales                     │
-│  - 130,000+ inscriptions                    │
-│  - Contraintes d'intégrité                  │
-└─────────────────────────────────────────────┘
+num_exam/
+├── backend/
+│   ├── config.py              # Configuration générale
+│   ├── database.py            # Gestion base de données
+│   ├── optimizer.py           # Algorithme d'optimisation
+│   ├── conflict_detector.py   # Détection de conflits
+│   └── seed_data.py           # Génération données test
+├── frontend/
+│   ├── app.py                 # Interface principale
+│   └── pages/
+│       ├── 1_Dashboard_Doyen.py
+│       ├── 2_Admin_Examens.py
+│       ├── 3_Chef_Departement.py
+│       ├── 4_Consultation.py
+│       └── 5_visualisation_planning.py
+└── sql/
+    ├── schema.sql             # Schéma de base de données
+    └── queries.sql            # Requêtes utiles
 ```
 
-## 🗄️ Modèle de Données
+## Technologies
 
-### Tables Principales
+- **Backend:** Python 3.9+
+- **Base de données:** PostgreSQL 14+
+- **Frontend:** Streamlit
+- **Visualisation:** Plotly
+- **Optimisation:** Algorithme glouton avec contraintes
 
-- **departements** (7 départements)
-- **formations** (200+ formations)
-- **etudiants** (13,000 étudiants)
-- **professeurs** (310+ professeurs)
-- **modules** (1,470+ modules)
-- **lieux_examen** (136 salles/amphis)
-- **inscriptions** (130,000+ inscriptions)
-- **examens** (planning généré)
-- **surveillances** (assignations professeurs)
+## Installation
 
-## 🚀 Installation et Lancement
+### 1. Prérequis
 
-### Prérequis
-
-- Python 3.10 ou supérieur
-- PostgreSQL 15 ou supérieur
-- pip (gestionnaire de paquets Python)
-
-### Étape 1 : Cloner le projet
 ```bash
-git clone https://github.com/votre-username/num-exam-platform.git
-cd num-exam-platform
+# Python 3.9 ou supérieur
+python --version
+
+# PostgreSQL 14 ou supérieur
+psql --version
 ```
 
-### Étape 2 : Créer l'environnement virtuel
+### 2. Cloner le projet
+
+```bash
+git clone https://github.com/votre-username/num_exam.git
+cd num_exam
+```
+
+### 3. Créer l'environnement virtuel
+
 ```bash
 python -m venv venv
 
-# Activer l'environnement
-# Windows:
+# Windows
 venv\Scripts\activate
-# Mac/Linux:
+
+# Linux/Mac
 source venv/bin/activate
 ```
 
-### Étape 3 : Installer les dépendances
+### 4. Installer les dépendances
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### Étape 4 : Configurer la base de données
+**requirements.txt:**
+```
+streamlit>=1.28.0
+psycopg2-binary>=2.9.9
+plotly>=5.17.0
+pandas>=2.1.0
+python-dotenv>=1.0.0
+faker>=19.6.2
+```
+
+### 5. Configuration de la base de données
+
+#### A. Créer la base de données
+
 ```bash
-# Créer la base de données
+# Se connecter à PostgreSQL
 psql -U postgres
+
+# Créer la base
 CREATE DATABASE num_exam_db;
-\q
 
-# Créer le schéma
-psql -U postgres -d num_exam_db -f database/schema.sql
+# Se connecter à la base
+\c num_exam_db
 ```
 
-### Étape 5 : Configurer les variables d'environnement
-```bash
-# Copier le template
-cp .env.example .env
+#### B. Créer le schéma
 
-# Éditer .env avec vos identifiants
-nano .env
+```bash
+# Exécuter le script SQL
+psql -U postgres -d num_exam_db -f sql/schema.sql
 ```
 
-Modifier les valeurs :
-```bash
+#### C. Configurer les variables d'environnement
+
+Créer un fichier `.env` à la racine du projet:
+
+```env
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=num_exam_db
 DB_USER=postgres
-DB_PASSWORD=VOTRE_MOT_DE_PASSE
+DB_PASSWORD=votre_mot_de_passe
 ```
 
-### Étape 6 : Générer les données
+**IMPORTANT:** Modifier également `backend/seed_data.py` ligne 21 avec votre mot de passe PostgreSQL.
+
+### 6. Générer les données de test
+
 ```bash
-python database/seed_data.py
+cd backend
+python seed_data.py
 ```
 
-⏱️ Durée : 2-5 minutes
+Cette commande génère:
+- 7 départements
+- 200+ formations
+- 13,000 étudiants
+- 310+ professeurs
+- 1,470 modules
+- 136 salles
+- 130,000+ inscriptions
 
-### Étape 7 : Lancer l'application
+**Durée:** ~2-3 minutes
+
+## Utilisation
+
+### 1. Lancer l'application
+
 ```bash
-streamlit run frontend/app.py
+cd frontend
+streamlit run app.py
 ```
 
-🌐 L'application s'ouvre automatiquement sur : http://localhost:8501
+L'application s'ouvre automatiquement sur `http://localhost:8501`
 
-## 📈 Performance
+### 2. Workflow recommandé
 
-### Benchmarks
+1. **Connexion:** Sélectionner votre rôle dans la barre latérale
+2. **Admin:** Générer l'emploi du temps automatique
+3. **Admin:** Détecter et corriger les conflits
+4. **Chef Département:** Valider les plannings par département
+5. **Doyen:** Validation finale du planning global
+6. **Étudiants/Profs:** Consultation des emplois du temps
 
-| Métrique | Objectif | Résultat | Statut |
-|----------|----------|----------|--------|
-| Temps génération EDT | < 45 sec | ~35 sec | ✅ |
-| Modules planifiés | 100% | 98.5% | ✅ |
-| Conflits critiques | 0 | 0 | ✅ |
-| Détection conflits | < 10 sec | ~3 sec | ✅ |
+### 3. Pages disponibles
 
-### Contraintes Respectées
+| Page | Rôle | Description |
+|------|------|-------------|
+| Dashboard Doyen | Doyen/Vice-doyen | Vue stratégique globale, KPIs |
+| Admin Examens | Administrateur | Génération EDT, détection conflits |
+| Chef Département | Chef de Département | Statistiques et validation locale |
+| Consultation | Étudiants/Professeurs | Emplois du temps personnalisés |
+| Visualisation | Tous | Affichage type planning université |
 
-- ✅ **Étudiants** : Maximum 1 examen par jour
-- ✅ **Professeurs** : Maximum 3 surveillances par jour
-- ✅ **Salles** : Capacité limitée à 20 étudiants (période examen)
-- ✅ **Priorités** : Profs surveillent prioritairement leur département
-- ✅ **Équilibrage** : Surveillances réparties équitablement
+## Déploiement en Production
 
-## 📚 Documentation
+### Option 1: Streamlit Cloud (Gratuit)
 
-### Structure du Projet
-```
-num-exam-platform/
-├── backend/
-│   ├── config.py              # Configuration
-│   ├── database.py            # Gestion BD
-│   ├── optimizer.py           # Algorithme génération
-│   └── conflict_detector.py   # Détection conflits
-├── frontend/
-│   ├── app.py                 # Application principale
-│   └── pages/                 # Pages Streamlit
-├── database/
-│   ├── schema.sql             # Structure BD
-│   └── seed_data.py           # Génération données
-├── requirements.txt
-├── .env.example
-└── README.md
+1. Créer un compte sur [share.streamlit.io](https://share.streamlit.io)
+2. Connecter votre dépôt GitHub
+3. Configurer les secrets dans Settings > Secrets:
+
+```toml
+[database]
+DB_HOST = "votre-serveur.postgres.cloud"
+DB_PORT = "5432"
+DB_NAME = "num_exam_db"
+DB_USER = "postgres"
+DB_PASSWORD = "votre_mot_de_passe"
 ```
 
-### Algorithme d'Optimisation
+4. Déployer l'application
 
-L'algorithme utilise une approche **gloutonne (greedy)** :
+### Option 2: Heroku
 
-1. Trier les modules par nombre d'étudiants (décroissant)
-2. Pour chaque module :
-   - Essayer chaque date disponible
-   - Essayer chaque créneau horaire
-   - Vérifier disponibilité des étudiants
-   - Trouver des salles disponibles
-   - Assigner des surveillants disponibles
-   - Planifier si toutes les contraintes sont respectées
-
-**Complexité** : O(n × d × h) où :
-- n = nombre de modules
-- d = nombre de jours
-- h = nombre de créneaux horaires
-
-## 🧪 Tests
-
-### Tester le backend
 ```bash
-# Test connexion BD
-python backend/config.py
+# Installer Heroku CLI
+heroku login
 
-# Test génération EDT
-python backend/optimizer.py
+# Créer l'application
+heroku create num-exam-app
 
-# Test détection conflits
-python backend/conflict_detector.py
+# Ajouter PostgreSQL
+heroku addons:create heroku-postgresql:hobby-dev
+
+# Déployer
+git push heroku main
+
+# Exécuter les migrations
+heroku run python backend/seed_data.py
 ```
 
-### Tester le frontend
+### Option 3: VPS (DigitalOcean, AWS, Azure)
+
 ```bash
-streamlit run frontend/app.py
+# Se connecter au VPS
+ssh root@votre-ip
+
+# Installer dépendances
+apt update
+apt install python3-pip postgresql nginx
+
+# Cloner le projet
+git clone https://github.com/votre-username/num_exam.git
+
+# Configuration
+cd num_exam
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Configurer PostgreSQL
+sudo -u postgres psql
+CREATE DATABASE num_exam_db;
+\c num_exam_db
+\i sql/schema.sql
+
+# Générer données
+python backend/seed_data.py
+
+# Lancer avec screen
+screen -S numexam
+streamlit run frontend/app.py --server.port 8501 --server.address 0.0.0.0
+
+# Détacher: Ctrl+A puis D
 ```
 
-Puis tester manuellement chaque page.
+## Contraintes Métier Implémentées
+
+### Étudiants
+- Maximum 1 examen par jour
+- Pas de chevauchement entre modules d'une même formation
+
+### Professeurs
+- Maximum 3 surveillances par jour
+- Équilibrage automatique des charges
+- Priorité aux professeurs du même département
+
+### Salles
+- Capacité maximale: 20 étudiants en période d'examen
+- Pas de double affectation sur un même créneau
+- Types: Amphis (200-350), Salles (30-60), Labos (20-40)
+
+### Horaires
+- 4 créneaux par jour: 08h00, 10h30, 13h00, 15h30
+- Jours ouvrables uniquement (Lundi-Vendredi)
+
+## Performance
+
+- **Génération:** < 45 secondes pour 1,470 modules
+- **Détection conflits:** < 10 secondes
+- **Taux de planification:** > 95%
+
+## Dépannage
+
+### Problème de connexion à la base
+
+```bash
+# Vérifier que PostgreSQL est démarré
+sudo systemctl status postgresql
+
+# Tester la connexion
+psql -U postgres -d num_exam_db
+```
+
+### Erreur "Module not found"
+
+```bash
+# Vérifier l'environnement virtuel
+which python
+# Doit pointer vers venv/bin/python
+
+# Réinstaller les dépendances
+pip install -r requirements.txt --force-reinstall
+```
+
+### Planning vide après génération
+
+1. Vérifier que les données sont bien chargées:
+```sql
+SELECT COUNT(*) FROM etudiants;  -- Doit retourner 13000
+SELECT COUNT(*) FROM modules;    -- Doit retourner ~1470
+```
+
+2. Vérifier les logs dans la console Streamlit
 
 
 
+## Licence
 
+© 2025 Université M'Hamed Bougara - Tous droits réservés
 
+## Auteurs
 
-
-
+Projet académique réalisé dans le cadre du cours de Bases de Données Avancées.
 
 ---
 
-**Développé avec ❤️ par simsim et riham**
+**Version:** 1.0.0  
+**Dernière mise à jour:** Décembre 2025
