@@ -1,6 +1,6 @@
 """
 Application Streamlit - Plateforme de Gestion des Emplois du Temps d'Examens
-Version Professionnelle Sans Emojis
+
 """
 
 import streamlit as st
@@ -216,36 +216,63 @@ if role == "Doyen/Vice-doyen":
     
     st.info("Accédez au dashboard complet via le menu : **Pages** > **Dashboard Doyen**")
     
+    try:
+        db = Database(db_config.DB_CONFIG)
+        db.connect()
+        
+        query = """
+            SELECT 
+                (SELECT COUNT(*) FROM modules) as nb_modules,
+                (SELECT COUNT(*) FROM etudiants) as nb_etudiants,
+                (SELECT COUNT(*) FROM professeurs) as nb_professeurs,
+                (SELECT COUNT(*) FROM lieux_examen WHERE est_disponible = TRUE) as nb_salles
+        """
+        stats = db.execute_query(query)
+        
+        if stats:
+            data = stats[0]
+            nb_modules = data['nb_modules']
+            nb_etudiants = data['nb_etudiants']
+            nb_professeurs = data['nb_professeurs']
+            nb_salles = data['nb_salles']
+        else:
+            nb_modules = nb_etudiants = nb_professeurs = nb_salles = 0
+        
+        db.disconnect()
+        
+    except:
+        nb_modules = nb_etudiants = nb_professeurs = nb_salles = 0
+    
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-container">
-            <div class="metric-value">1,470</div>
+            <div class="metric-value">{nb_modules:,}</div>
             <div class="metric-label">Modules</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-container">
-            <div class="metric-value">13,000</div>
+            <div class="metric-value">{nb_etudiants:,}</div>
             <div class="metric-label">Étudiants</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-container">
-            <div class="metric-value">310</div>
+            <div class="metric-value">{nb_professeurs}</div>
             <div class="metric-label">Professeurs</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
-        st.markdown("""
+        st.markdown(f"""
         <div class="metric-container">
-            <div class="metric-value">136</div>
+            <div class="metric-value">{nb_salles}</div>
             <div class="metric-label">Salles</div>
         </div>
         """, unsafe_allow_html=True)
@@ -364,7 +391,22 @@ elif role == "Étudiant":
     
     if st.button("Voir mon Emploi du Temps", type="primary", use_container_width=True):
         if matricule:
-            st.info("Accédez à : Pages > Consultation > Étudiants")
+            try:
+                db = Database(db_config.DB_CONFIG)
+                db.connect()
+                
+                query = "SELECT * FROM etudiants WHERE matricule = %s"
+                result = db.execute_query(query, (matricule,))
+                
+                if result:
+                    st.success(f"Étudiant trouvé : {result[0]['nom']} {result[0]['prenom']}")
+                    st.info("Accédez à : Pages > Consultation pour voir votre emploi du temps complet")
+                else:
+                    st.error("Matricule non trouvé")
+                
+                db.disconnect()
+            except Exception as e:
+                st.error(f"Erreur : {e}")
         else:
             st.warning("Veuillez entrer votre matricule")
     
@@ -372,7 +414,23 @@ elif role == "Étudiant":
     
     st.markdown("### Vos Prochains Examens")
     
-    st.info("Aucun examen planifié pour le moment. L'emploi du temps sera disponible une fois généré par l'administration.")
+    try:
+        db = Database(db_config.DB_CONFIG)
+        db.connect()
+        
+        query = "SELECT COUNT(*) as nb FROM examens WHERE statut = 'Planifie'"
+        result = db.execute_query(query)
+        nb_examens = result[0]['nb'] if result else 0
+        
+        if nb_examens > 0:
+            st.success(f"{nb_examens} examens planifiés dans le système")
+            st.info("Entrez votre matricule ci-dessus pour voir vos examens personnalisés")
+        else:
+            st.info("Aucun examen planifié pour le moment. L'emploi du temps sera disponible une fois généré par l'administration.")
+        
+        db.disconnect()
+    except:
+        st.info("Vérifiez la connexion à la base de données")
 
 elif role == "Professeur":
     st.markdown("## Espace Professeur")
@@ -383,7 +441,22 @@ elif role == "Professeur":
     
     if st.button("Voir mes Surveillances", type="primary", use_container_width=True):
         if matricule:
-            st.info("Accédez à : Pages > Consultation > Professeurs")
+            try:
+                db = Database(db_config.DB_CONFIG)
+                db.connect()
+                
+                query = "SELECT * FROM professeurs WHERE matricule = %s"
+                result = db.execute_query(query, (matricule,))
+                
+                if result:
+                    st.success(f"Professeur trouvé : {result[0]['nom']} {result[0]['prenom']}")
+                    st.info("Accédez à : Pages > Consultation pour voir vos surveillances complètes")
+                else:
+                    st.error("Matricule non trouvé")
+                
+                db.disconnect()
+            except Exception as e:
+                st.error(f"Erreur : {e}")
         else:
             st.warning("Veuillez entrer votre matricule")
     
@@ -391,7 +464,23 @@ elif role == "Professeur":
     
     st.markdown("### Vos Prochaines Surveillances")
     
-    st.info("Aucune surveillance planifiée pour le moment. Les surveillances seront assignées une fois l'emploi du temps généré.")
+    try:
+        db = Database(db_config.DB_CONFIG)
+        db.connect()
+        
+        query = "SELECT COUNT(*) as nb FROM surveillances"
+        result = db.execute_query(query)
+        nb_surveillances = result[0]['nb'] if result else 0
+        
+        if nb_surveillances > 0:
+            st.success(f"{nb_surveillances} surveillances assignées dans le système")
+            st.info("Entrez votre matricule ci-dessus pour voir vos surveillances personnalisées")
+        else:
+            st.info("Aucune surveillance planifiée pour le moment. Les surveillances seront assignées une fois l'emploi du temps généré.")
+        
+        db.disconnect()
+    except:
+        st.info("Vérifiez la connexion à la base de données")
 
 st.markdown("---")
 

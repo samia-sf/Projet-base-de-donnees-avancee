@@ -140,10 +140,15 @@ def main():
         if kpis:
             col1, col2, col3, col4 = st.columns(4)
             
+            total_examens = kpis.get('total_examens') or 0
+            profs_mobilises = kpis.get('profs_mobilises') or 0
+            salles_utilisees = kpis.get('salles_utilisees') or 0
+            total_places = kpis.get('total_places_examens') or 0
+            
             with col1:
                 st.markdown(f"""
                 <div class="kpi-card">
-                    <div class="kpi-value">{kpis.get('total_examens', 0):,}</div>
+                    <div class="kpi-value">{total_examens:,}</div>
                     <div class="kpi-label">Examens Planifiés</div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -151,7 +156,7 @@ def main():
             with col2:
                 st.markdown(f"""
                 <div class="kpi-card">
-                    <div class="kpi-value">{kpis.get('profs_mobilises', 0)}</div>
+                    <div class="kpi-value">{profs_mobilises}</div>
                     <div class="kpi-label">Professeurs Mobilisés</div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -159,7 +164,7 @@ def main():
             with col3:
                 st.markdown(f"""
                 <div class="kpi-card">
-                    <div class="kpi-value">{kpis.get('salles_utilisees', 0)}</div>
+                    <div class="kpi-value">{salles_utilisees}</div>
                     <div class="kpi-label">Salles Utilisées</div>
                 </div>
                 """, unsafe_allow_html=True)
@@ -167,7 +172,7 @@ def main():
             with col4:
                 st.markdown(f"""
                 <div class="kpi-card">
-                    <div class="kpi-value">{kpis.get('total_places_examens', 0):,}</div>
+                    <div class="kpi-value">{total_places:,}</div>
                     <div class="kpi-label">Places d'Examen</div>
                 </div>
                 """, unsafe_allow_html=True)
