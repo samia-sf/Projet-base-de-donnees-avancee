@@ -15,38 +15,20 @@ load_dotenv()
 class DatabaseConfig:
     """Configuration PostgreSQL"""
     
-    # Vérifier si on est sur Streamlit Cloud
+    
     import streamlit as st
 import psycopg2
-import re
 
+# Récupère l'URL depuis les secrets
 DATABASE_URL = st.secrets["DATABASE_URL"]
 
-match = re.match(r'postgres(?:ql)?://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
-if match:
-    DB_USER = match.group(1)
-    DB_PASSWORD = match.group(2)
-    DB_HOST = match.group(3)
-    DB_PORT = match.group(4)
-    DB_NAME = match.group(5).split('?')[0]
-else:
-    raise ValueError("❌ Impossible de parser DATABASE_URL depuis Streamlit Secrets")
-
-DB_CONFIG = {
-    'dbname': DB_NAME,
-    'user': DB_USER,
-    'password': DB_PASSWORD,
-    'host': DB_HOST,
-    'port': DB_PORT
-}
-
-# Test rapide
 try:
-    conn = psycopg2.connect(**DB_CONFIG)
+    # Passer l'URL complète à psycopg2, SSL inclus
+    conn = psycopg2.connect(DATABASE_URL)
     conn.close()
-    print("✅ Connexion PostgreSQL OK!")
+    st.success("✅ Connexion NeonDB réussie !")
 except Exception as e:
-    print(f"❌ Erreur de connexion: {e}")
+    st.error(f"❌ Erreur de connexion: {e}")
 
         
     
