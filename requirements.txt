@@ -2,42 +2,41 @@
 # DÉPENDANCES PROJET NUM_EXAM
 # ============================================
 
-# Base de données
-psycopg2-binary==2.9.9
+# Base de données (FIXED - use psycopg2-binary without building from source)
+psycopg2-binary>=2.9.9
 SQLAlchemy==2.0.23
 
 # Génération de données
 Faker==20.1.0
 
-# Interface Web
-streamlit==1.29.0
+# Interface Web (UPDATED for compatibility)
+streamlit>=1.30.0
 streamlit-option-menu==0.3.6
 
 # Visualisations
 plotly==5.18.0
-matplotlib==3.8.2
+matplotlib>=3.8.3
 seaborn==0.13.0
 
 # Data processing
-pandas==2.2.3
-numpy==1.26.4
+pandas>=2.2.3
+numpy>=1.26.4
 
-
-# Optimisation
+# Optimisation (UPDATED - use latest version compatible with streamlit)
 pulp==2.7.0
-ortools==9.12.4544
+ortools>=9.15.0
 
 # Utilitaires
 python-dotenv==1.0.0
-pydantic==2.5.3
+pydantic>=2.5.3
 
 # Tests
-pytest==7.4.3
-pytest-cov==4.1.0
+pytest>=7.4.3
+pytest-cov>=4.1.0
 
 # Code quality
-black==23.12.1
-flake8==7.0.0
+black>=23.12.1
+flake8>=7.0.0
 
 # Date/Time
 python-dateutil==2.8.2
