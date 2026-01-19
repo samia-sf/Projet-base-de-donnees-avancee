@@ -24,13 +24,10 @@ fake = Faker('fr_FR')
 Faker.seed(FAKER_SEED)
 
 # Configuration BD - MODIFIE TON MOT DE PASSE ICI !
-DB_CONFIG = {
-    'dbname': 'num_exam_db',
-    'user': 'postgres',
-    'password': 'thisispost@1',  
-    'host': 'localhost',
-    'port': 5432
-}
+from db_connection import get_connection
+
+conn = get_connection()
+
 
 def get_connection():
     """Crée une connexion à la BD"""
