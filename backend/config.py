@@ -15,15 +15,45 @@ load_dotenv()
 class DatabaseConfig:
     """Configuration PostgreSQL"""
     
-    # Paramètres de connexion
-    DB_HOST = os.getenv('DB_HOST', 'localhost')
-    DB_PORT = os.getenv('DB_PORT', '5432')
-    DB_NAME = os.getenv('DB_NAME', 'num_exam_db')
-    DB_USER = os.getenv('DB_USER', 'postgres')
-    DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
-    
-    # URL de connexion SQLAlchemy
-    DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    # Vérifier si on est sur Streamlit Cloud
+    try:
+        import streamlit as st
+        if "DATABASE_URL" in st.secrets:
+            # Mode production: utiliser les secrets Streamlit
+            DATABASE_URL = st.secrets["DATABASE_URL"]
+            
+            # Parser l'URL pour extraire les paramètres
+            import re
+            match = re.match(r'postgresql://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
+            if match:
+                DB_USER = match.group(1)
+                DB_PASSWORD = match.group(2)
+                DB_HOST = match.group(3)
+                DB_PORT = match.group(4)
+                DB_NAME = match.group(5).split('?')[0]  # Enlever les paramètres SSL
+            else:
+                # Fallback si parsing échoue
+                DB_HOST = 'localhost'
+                DB_PORT = '5432'
+                DB_NAME = 'num_exam_db'
+                DB_USER = 'postgres'
+                DB_PASSWORD = 'postgres'
+        else:
+            # Mode local avec fichier .env
+            DB_HOST = os.getenv('DB_HOST', 'localhost')
+            DB_PORT = os.getenv('DB_PORT', '5432')
+            DB_NAME = os.getenv('DB_NAME', 'num_exam_db')
+            DB_USER = os.getenv('DB_USER', 'postgres')
+            DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
+            DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    except:
+        # Si streamlit n'est pas importé (mode local)
+        DB_HOST = os.getenv('DB_HOST', 'localhost')
+        DB_PORT = os.getenv('DB_PORT', '5432')
+        DB_NAME = os.getenv('DB_NAME', 'num_exam_db')
+        DB_USER = os.getenv('DB_USER', 'postgres')
+        DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
+        DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     
     # URL de connexion psycopg2
     DB_CONFIG = {
