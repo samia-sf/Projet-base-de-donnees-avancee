@@ -24,7 +24,8 @@ class DatabaseConfig:
             
             # Parser l'URL pour extraire les paramètres
             import re
-            match = re.match(r'postgresql://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
+            match = re.match(r'postgres(?:ql)?://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
+
             if match:
                 DB_USER = match.group(1)
                 DB_PASSWORD = match.group(2)
