@@ -79,7 +79,7 @@ pip install -r requirements.txt
 streamlit>=1.28.0
 psycopg2-binary>=2.9.9
 plotly>=5.17.0
-pandas>=2.1.0
+pandas>=2.2.3
 python-dotenv>=1.0.0
 faker>=19.6.2
 ```
