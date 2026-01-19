@@ -16,45 +16,39 @@ class DatabaseConfig:
     """Configuration PostgreSQL"""
     
     # Vérifier si on est sur Streamlit Cloud
-    try:
-        import streamlit as st
-        if "DATABASE_URL" in st.secrets:
-            # Mode production: utiliser les secrets Streamlit
-            DATABASE_URL = st.secrets["DATABASE_URL"]
-            
-            # Parser l'URL pour extraire les paramètres
-            import re
-            match = re.match(r'postgres(?:ql)?://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
+    import streamlit as st
+import psycopg2
+import re
 
-            if match:
-                DB_USER = match.group(1)
-                DB_PASSWORD = match.group(2)
-                DB_HOST = match.group(3)
-                DB_PORT = match.group(4)
-                DB_NAME = match.group(5).split('?')[0]  # Enlever les paramètres SSL
-            else:
-                # Fallback si parsing échoue
-                DB_HOST = 'localhost'
-                DB_PORT = '5432'
-                DB_NAME = 'num_exam_db'
-                DB_USER = 'postgres'
-                DB_PASSWORD = 'postgres'
-        else:
-            # Mode local avec fichier .env
-            DB_HOST = os.getenv('DB_HOST', 'localhost')
-            DB_PORT = os.getenv('DB_PORT', '5432')
-            DB_NAME = os.getenv('DB_NAME', 'num_exam_db')
-            DB_USER = os.getenv('DB_USER', 'postgres')
-            DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
-            DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    except:
-        # Si streamlit n'est pas importé (mode local)
-        DB_HOST = os.getenv('DB_HOST', 'localhost')
-        DB_PORT = os.getenv('DB_PORT', '5432')
-        DB_NAME = os.getenv('DB_NAME', 'num_exam_db')
-        DB_USER = os.getenv('DB_USER', 'postgres')
-        DB_PASSWORD = os.getenv('DB_PASSWORD', 'postgres')
-        DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = st.secrets["DATABASE_URL"]
+
+match = re.match(r'postgres(?:ql)?://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)', DATABASE_URL)
+if match:
+    DB_USER = match.group(1)
+    DB_PASSWORD = match.group(2)
+    DB_HOST = match.group(3)
+    DB_PORT = match.group(4)
+    DB_NAME = match.group(5).split('?')[0]
+else:
+    raise ValueError("❌ Impossible de parser DATABASE_URL depuis Streamlit Secrets")
+
+DB_CONFIG = {
+    'dbname': DB_NAME,
+    'user': DB_USER,
+    'password': DB_PASSWORD,
+    'host': DB_HOST,
+    'port': DB_PORT
+}
+
+# Test rapide
+try:
+    conn = psycopg2.connect(**DB_CONFIG)
+    conn.close()
+    print("✅ Connexion PostgreSQL OK!")
+except Exception as e:
+    print(f"❌ Erreur de connexion: {e}")
+
+        
     
     # URL de connexion psycopg2
     DB_CONFIG = {
