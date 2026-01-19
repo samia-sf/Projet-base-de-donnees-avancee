@@ -27,7 +27,7 @@ Faker.seed(FAKER_SEED)
 DB_CONFIG = {
     'dbname': 'num_exam_db',
     'user': 'postgres',
-    'password': 'itspost@1',  
+    'password': 'thisispost@1',  
     'host': 'localhost',
     'port': 5432
 }
