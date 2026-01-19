@@ -20,11 +20,12 @@ seaborn==0.13.0
 
 # Data processing
 pandas==2.2.3
-numpy==1.26.2
+numpy==1.26.4
+
 
 # Optimisation
 pulp==2.7.0
-ortools==9.8.3296
+ortools==9.12.4544
 
 # Utilitaires
 python-dotenv==1.0.0
